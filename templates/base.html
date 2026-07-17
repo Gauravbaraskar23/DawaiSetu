@@ -505,7 +505,7 @@
     }
 
     function readAndRedirect(id, link){
-        fetch(`notifications/api/read/${id}/`, {
+        fetch(`/notifications/api/read/${id}/`, {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
