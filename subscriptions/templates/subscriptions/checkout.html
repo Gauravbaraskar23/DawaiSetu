@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Checkout | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
+    <div class="w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="p-8 text-center border-b border-gray-100 {% if plan_type == 'premium' %}bg-gradient-to-r from-yellow-50 to-yellow-100{% else %}bg-gray-50{% endif %}">
+            
+            {% if plan_type == 'premium' %}
+                <span class="inline-block px-3 py-1 bg-yellow-200 text-yellow-800 text-xs font-black uppercase tracking-wider rounded-full mb-3">Add-on Service</span>
+            {% else %}
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-black uppercase tracking-wider rounded-full mb-3">Base Subscription</span>
+            {% endif %}
+
+            <h2 class="text-2xl font-extrabold text-gray-900">Secure Checkout</h2>
+            <p class="mt-2 text-gray-600">You are activating: <strong class="{% if plan_type == 'premium' %}text-yellow-600{% else %}text-[#1E3A8A]{% endif %} text-lg">{{ plan.name }}</strong></p>
+        </div>
+        
+        <div class="p-10 bg-white flex flex-col items-center">
+            <p class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Amount to Pay</p>
+            <div class="text-5xl font-black text-[#10B981] mb-10">₹{{ plan.price }}</div>
+            
+            <!-- Real Razorpay Form -->
+            <form action="{% url 'payment_success' %}" method="POST" id="razorpay-form">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                
+                <!-- NEW LINE: Ye field backend ko batayegi ki payment Inventory ke liye hui hai ya Premium Add-on ke liye -->
+                <input type="hidden" name="plan_type" value="{{ plan_type }}"> 
+                <input type="hidden" name="user_id" value="{{ request.user.id }}">
+                <script
+                    src="https://checkout.razorpay.com/v1/checkout.js"
+                    data-key="{{ razorpay_merchant_key }}"
+                    data-amount="{{ amount }}"
+                    data-currency="INR"
+                    data-order_id="{{ razorpay_order_id }}"
+                    data-buttontext="Pay Now Securely"
+                    data-name="Meditrack Platform"
+                    data-description="{{ plan.name }} Activation"
+                    {% comment %} data-image="https://cdn-icons-png.flaticon.com/512/3063/3063206.png" {% endcomment %}
+                    data-image="{% static 'images/favicon.svg' %}"
+                    data-prefill.name="{{ request.user.username }}"
+                    data-prefill.email="{{ request.user.email }}"
+                    data-theme.color="{% if plan_type == 'premium' %}#EAB308{% else %}#1E3A8A{% endif %}">
+                </script>
+            </form>
+            
+            <div class="mt-8 flex items-center justify-center gap-2 text-xs text-gray-400 font-medium">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                100% Secured by Razorpay. All cards & UPI accepted.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling the default Razorpay button to look premium based on plan type */
+    .razorpay-payment-button {
+        background-color: {% if plan_type == 'premium' %}#EAB308{% else %}#1E3A8A{% endif %} !important;
+        color: white !important;
+        font-weight: 800 !important;
+        padding: 18px 48px !important;
+        border-radius: 12px !important;
+        font-size: 18px !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px {% if plan_type == 'premium' %}rgba(234, 179, 8, 0.3){% else %}rgba(30, 58, 138, 0.3){% endif %} !important;
+        width: 100%;
+        min-width: 250px;
+    }
+    .razorpay-payment-button:hover {
+        background-color: {% if plan_type == 'premium' %}#CA8A04{% else %}#152C6B{% endif %} !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px {% if plan_type == 'premium' %}rgba(234, 179, 8, 0.4){% else %}rgba(30, 58, 138, 0.4){% endif %} !important;
+    }
+</style>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% block title %}Checkout | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+        <div class="p-8 text-center border-b border-gray-100">
+            <h2 class="text-2xl font-extrabold text-gray-900">Checkout</h2>
+            <p class="mt-2 text-gray-500">You are purchasing the <strong class="text-[#1E3A8A]">{{ plan.name }}</strong></p>
+        </div>
+        
+        <div class="p-8 bg-gray-50 flex flex-col items-center">
+            <div class="text-5xl font-black text-[#10B981] mb-8">₹{{ plan.price }}</div>
+            
+            <!-- Real Razorpay Form (Hidden and Triggered via Button) -->
+            <form action="{% url 'payment_success' %}" method="POST" id="razorpay-form">
+                <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                <script
+                    src="https://checkout.razorpay.com/v1/checkout.js"
+                    data-key="{{ razorpay_merchant_key }}"
+                    data-amount="{{ amount }}"
+                    data-currency="INR"
+                    data-order_id="{{ razorpay_order_id }}"
+                    data-buttontext="Pay Now with Razorpay"
+                    data-name="Meditrack Subscriptions"
+                    data-description="{{ plan.name }} Activation"
+                    data-image="https://cdn-icons-png.flaticon.com/512/3063/3063206.png"
+                    data-prefill.name="{{ request.user.username }}"
+                    data-prefill.email="{{ request.user.email }}"
+                    data-theme.color="#1E3A8A">
+                </script>
+            </form>
+            
+            <p class="mt-6 text-xs text-gray-400">Secured by Razorpay. All payment methods accepted.</p>
+        </div>
+    </div>
+</div>
+<style>
+    /* Styling the default Razorpay button to look premium */
+    .razorpay-payment-button {
+        background-color: #1E3A8A !important;
+        color: white !important;
+        font-weight: 800 !important;
+        padding: 16px 40px !important;
+        border-radius: 12px !important;
+        font-size: 18px !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2) !important;
+    }
+    .razorpay-payment-button:hover {
+        background-color: #152C6B !important;
+        transform: translateY(-2px) !important;
+    }
+</style>
+{% endblock %} {% endcomment %}

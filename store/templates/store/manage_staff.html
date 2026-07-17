@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Manage Staff | Meditrack{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-6 md:py-10 px-4 sm:px-6 lg:px-8">
+
+    <a href="{% url 'seller_dashboard' %}" class="inline-flex items-center text-sm font-semibold text-[#1E3A8A] hover:text-blue-800 transition mb-6">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Dashboard
+    </a>
+
+    <div class="mb-6">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">Manage Staff Accounts</h1>
+        <p class="text-sm text-gray-500 mt-1">Create sub-accounts for your employees with limited permissions.</p>
+    </div>
+
+    <!-- Slots Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Staff Slots</p>
+            <p class="text-lg font-black text-gray-900">{{ staff_members|length }} / {{ max_staff }} Used</p>
+        </div>
+        {% if remaining_slots == 0 %}
+        <a href="{% url 'pricing' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition whitespace-nowrap">
+            Upgrade for More Slots
+        </a>
+        {% else %}
+        <span class="text-sm font-bold text-[#10B981] bg-green-50 px-3 py-1.5 rounded-lg">{{ remaining_slots }} Slot{{ remaining_slots|pluralize }} Available</span>
+        {% endif %}
+    </div>
+
+    <!-- Add Staff Form -->
+    {% if remaining_slots > 0 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 mb-8">
+        <h3 class="text-sm font-bold text-gray-900 mb-4">Add New Staff Member</h3>
+        <form method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Username</label>
+                <input type="text" name="username" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent outline-none transition">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
+                <input type="password" name="password" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent outline-none transition">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Role / Permission</label>
+                <select name="staff_role" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent outline-none transition bg-white cursor-pointer">
+                    <option value="">Select a role...</option>
+                    <option value="order_manager">Order Manager — Pack & update orders only</option>
+                    <option value="inventory_manager">Inventory Manager — Add/edit medicines only</option>
+                    <option value="full_access">Full Access — Orders + Inventory</option>
+                </select>
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="w-full sm:w-auto bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow-sm">
+                    Create Staff Account
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Staff List -->
+    <h3 class="text-sm font-bold text-gray-900 mb-3">Your Staff ({{ staff_members|length }})</h3>
+
+    {% if not staff_members %}
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+        <p class="text-sm text-gray-500">No staff accounts yet. Add your first employee above.</p>
+    </div>
+    {% endif %}
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for staff in staff_members %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-bold text-gray-900 text-sm">{{ staff.username }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ staff.get_staff_role_display }}</td>
+                    <td class="px-6 py-4">
+                        {% if staff.is_active %}
+                        <span class="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-green-100 text-green-800">Active</span>
+                        {% else %}
+                        <span class="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-gray-100 text-gray-500">Deactivated</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-3">
+                        <form method="POST" action="{% url 'toggle_staff_status' staff.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs font-bold text-blue-600 hover:text-blue-800">
+                                {% if staff.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'delete_staff' staff.id %}" class="inline" onsubmit="return confirm('Remove this staff account permanently?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-800">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="md:hidden space-y-3">
+        {% for staff in staff_members %}
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+                <p class="font-bold text-gray-900 text-sm">{{ staff.username }}</p>
+                {% if staff.is_active %}
+                <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">Active</span>
+                {% else %}
+                <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-gray-100 text-gray-500">Deactivated</span>
+                {% endif %}
+            </div>
+            <p class="text-xs text-gray-500 mb-3">{{ staff.get_staff_role_display }}</p>
+            <div class="flex gap-2 border-t border-gray-50 pt-3">
+                <form method="POST" action="{% url 'toggle_staff_status' staff.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-center py-2 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs hover:bg-blue-100 transition">
+                        {% if staff.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'delete_staff' staff.id %}" class="flex-1" onsubmit="return confirm('Remove this staff account permanently?');">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-center py-2 rounded-lg bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition">
+                        Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,721 @@
+{% extends 'base.html' %}
+
+{% block title %}Seller Dashboard | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-6 md:py-8">
+
+    <!-- Header -->
+    <div class="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 capitalize tracking-tight">
+                {% if user.agency_name %}{{ user.agency_name }}{% else %}Inventory Dashboard{% endif %}
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">Manage your store's medicines and stock levels.</p>
+        </div>
+
+        <div class="flex gap-3 w-full md:w-auto">
+            {% if not is_staff_account %}
+                <a href="{% url 'manage_staff' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1a4 4 0 100-8 4 4 0 000 8zm-9 9a4 4 0 013-3.87"></path></svg>
+                    Manage Staff
+                </a>
+            {% endif %}
+            
+            <a href="{% url 'store_analytics' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analytics
+            </a>
+            
+            <a href="{% url 'bulk_upload_medicines' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-[#10B981] text-[#10B981] hover:bg-green-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span class="hidden sm:inline">Add Bulk Data (Excel)</span>
+                <span class="sm:hidden">Bulk Upload</span>
+            </a>
+            <a href="{% url 'add_medicine' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-[#1E3A8A] hover:bg-blue-800 text-white px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Add Medicine
+            </a>
+        </div>
+    </div>
+
+     <!-- Share Store Link -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <h3 class="text-sm font-bold text-gray-900 mb-4">Store Branding & Links</h3>
+        
+        {% if allow_custom_link and not has_custom_domain %}
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Exclusive Store Link</h3>
+                        <p class="text-xs text-blue-700">Send this link to customers so they ONLY see your inventory.</p>
+                    </div>
+                </div>
+                
+                <div class="flex w-full md:w-auto">
+                    <input type="text" id="store-link" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}?seller_id={{ user.id }}&locked=true" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
+                    <button onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
+                        Copy Link
+                    </button>
+                </div>
+            </div>
+        {% elif not has_custom_domain %}
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 opacity-60">
+                    <div class="bg-gray-200 p-2 rounded-full text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700">
+                            Share Your Exclusive Store Link 
+                            <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded ml-2 font-black uppercase tracking-wider">Premium</span>
+                        </h3>
+                        <p class="text-xs text-gray-500">Upgrade your plan to unlock your personal store link.</p>
+                    </div>
+                </div>
+                <a href="{% url 'pricing' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition shadow-sm whitespace-nowrap">
+                    Upgrade Plan
+                </a>
+            </div>
+        {% endif %}
+
+        {% if has_custom_domain %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Your Custom Subdomain</label>
+                <form method="POST" class="flex flex-col sm:flex-row gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="set_subdomain" value="1">
+                    <div class="flex-1 relative flex items-center">
+                        <input type="text" name="subdomain_name" value="{{ store_profile.custom_subdomain|default:'' }}" placeholder="e.g., vermapharmacy" required class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none text-right font-bold text-[#1E3A8A] bg-white">
+                        <span class="ml-2 font-bold text-blue-800">.meditrack.com</span>
+                    </div>
+                    <button type="submit" class="bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
+                        Save Domain
+                    </button>
+                </form>
+                <p class="text-xs text-blue-600 mt-2">Customers visiting this link will only see your inventory automatically.</p>
+            </div>
+            
+            {% if store_profile.custom_subdomain %}
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Exclusive Store Link</h3>
+                        <p class="text-xs text-blue-700">Send this link to customers so they Only see your inventory.</p>
+                    </div>
+                </div>
+                
+                <div class="flex w-full md:w-auto">
+                    <input type="text" id="store-link" readonly value="http://{{ store_profile.custom_subdomain }}.localhost:8000" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
+                    <button id="copyBtn" onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
+                        Copy Link
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+        {% else %}
+                
+            <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-yellow-800">Want professional link (yourname.meditrack.com)?</span>
+                </div>
+                <a href="{% url 'pricing' %}" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-3 py-1.5 rounded transition">Upgrade to Pro</a>
+            </div>
+        {% endif %} 
+    </div> 
+
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+            Store Verification Status
+            {% if store_profile.is_verified %}
+                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24" title="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            {% endif %}
+        </h3>
+
+        {% if store_profile.is_verified %}
+            <div class="bg-green-50 text-green-800 p-3 rounded-lg text-sm flex items-center justify-between font-bold border border-green-200">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Your pharmacy is fully verified! Customers can see the Blue Tick.
+                </div>
+                <span class="text-xs text-green-600 bg-white px-2 py-1 rounded">FSSAI: {{ store_profile.fssai_license_number }}</span>
+            </div>
+        {% elif store_profile.fssai_license_number %}
+            <div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm flex items-center gap-2 font-bold border border-yellow-200">
+                <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Documents submitted. Pending Admin Verification. Please wait 24-48 hours.
+            </div>
+        {% else %}
+            <form method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-4 items-end">
+                {% csrf_token %}
+                <input type="hidden" name="verify_store" value="1">
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">FSSAI License Number</label>
+                    <input type="text" name="fssai_number" placeholder="Enter License No." required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none transition">
+                </div>
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Upload Document (PDF/Image)</label>
+                    <input type="file" name="fssai_document" accept=".pdf,image/*" required class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 bg-gray-50">
+                </div>
+                <div class="w-full sm:w-auto mt-2 sm:mt-0">
+                    <button type="submit" class="w-full sm:w-auto bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
+                        Submit Details
+                    </button>
+                </div>
+            </form>
+            <p class="text-xs text-gray-400 mt-2">* Uploading your license gives your store a verified blue tick, boosting customer trust by up to 80%.</p>
+        {% endif %}
+    </div>
+
+
+
+    <div class="mb-8">
+        <h3 class="text-lg font-extrabold text-gray-900 mb-4">Store Overview</h3>
+        
+        {% if has_analytics %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Listings</p>
+                        <p class="text-2xl font-black text-[#1E3A8A] mt-1">{{ active_medicines_count }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Est. Inventory Value</p>
+                        <p class="text-2xl font-black text-[#10B981] mt-1">₹{{ total_inventory_value|floatformat:2 }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Out of Stock</p>
+                        <p class="text-2xl font-black {% if out_of_stock_count > 0 %}text-red-500{% else %}text-gray-900{% endif %} mt-1">{{ out_of_stock_count }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full {% if out_of_stock_count > 0 %}bg-red-50 text-red-500{% else %}bg-gray-50 text-gray-400{% endif %} flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-gradient-to-r from-gray-900 to-[#1E3A8A] rounded-xl p-6 text-white flex flex-col md:flex-row items-center justify-between shadow-lg mb-6">
+                <div class="mb-4 md:mb-0">
+                    <h4 class="font-black text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8l-3.354-1.935a1 1 0 010-1.732L9.854 7.2l1.18-4.456A1 1 0 0112 2z" clip-rule="evenodd"></path></svg>
+                        Unlock Pro Analytics
+                    </h4>
+                    <p class="text-sm text-blue-100 mt-1 max-w-lg">Get real-time insights, inventory valuation, and low-stock alerts by upgrading your plan.</p>
+                </div>
+                <a href="{% url 'pricing' %}" class="bg-white text-[#1E3A8A] hover:bg-gray-50 px-6 py-2.5 rounded-lg font-bold text-sm shadow-sm transition whitespace-nowrap">
+                    Upgrade Plan
+                </a>
+            </div>
+        {% endif %}
+
+        {% if has_stock_alerts and low_stock_medicines %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
+                <h4 class="font-bold text-yellow-800 mb-4 flex items-center gap-2 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Action Required: Low Stock ({{ low_stock_medicines|length }})
+                </h4>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {% for med in low_stock_medicines %}
+                    <button type="button" onclick="openStockModal('{{ med.id }}', '{{ med.name|escapejs }}', '{{ med.stock_available }}')" class="text-left bg-white p-4 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-100 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer">
+                        <span class="text-sm font-bold text-gray-800 truncate w-full mb-3 group-hover:text-yellow-700">{{ med.name }}</span>
+                        <div class="flex items-center justify-between w-full">
+                            <span class="text-xs font-black px-2.5 py-1 bg-red-100 text-red-700 rounded-md">{{ med.stock_available }} left</span>
+                            <span class="text-[10px] text-yellow-600 font-bold uppercase tracking-wider flex items-center gap-1 group-hover:text-yellow-800">
+                                Update <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-5">
+        <form id="search-filter-form" method="GET" action="{% url 'seller_dashboard' %}" class="flex flex-row gap-2">
+            <div class="relative flex-1 min-w-0">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" name="q" value="{{ query }}" autocomplete="off" placeholder="Search medicine..." class="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm outline-none transition">
+            </div>
+            <select name="status" class="flex-shrink-0 w-24 md:w-44 px-2 md:px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-xs md:text-sm bg-white outline-none cursor-pointer transition">
+                <option value="" {% if status_filter == '' %}selected{% endif %}>All Medicines</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active(In Stock)</option>
+                <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Hidden(Out of Stock)</option>
+            </select>
+            {% if query or status_filter %}
+            <a href="{% url 'seller_dashboard' %}" class="flex-shrink-0 flex items-center justify-center px-2.5 py-2.5 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition" title="Clear">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Inventory Results -->
+    <!-- Total Count Bar -->
+    <div class="flex items-center justify-between mb-3 px-1">
+        <p class="text-sm font-semibold text-gray-600">
+            Total: <span class="text-[#1E3A8A] font-extrabold">{{ medicines|length }}</span> medicines
+        </p>
+    </div>
+
+    <div id="inventory-results-container" class="transition-opacity duration-300">
+        {% if not medicines %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center mb-6">
+            <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h3 class="text-lg font-bold text-gray-900">No medicines found!</h3>
+            <p class="text-sm text-gray-600 mt-1">We couldn't find any items matching your current search or filter.</p>
+            {% if query or status_filter %}
+            <a href="{% url 'seller_dashboard' %}" class="inline-block mt-4 text-[#1E3A8A] font-bold hover:underline">Clear all filters</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Desktop Table (md and above) -->
+        <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-12">S.No.</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Medicine Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for medicine in medicines %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ forloop.counter }}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">{{ medicine.name }}</div>
+                            <div class="text-xs text-gray-500">{{ medicine.manufacturer.name }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-semibold {% if medicine.stock_available < 10 %}text-red-600{% else %}text-gray-900{% endif %}">
+                                {{ medicine.stock_available }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900">₹{{ medicine.actual_price }}</td>
+                        <td class="px-6 py-4">
+                            {% if medicine.is_available %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Hidden</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-sm space-x-3">
+                            <a href="{% url 'edit_medicine' medicine.slug %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                            <a href="{% url 'delete_medicine' medicine.slug %}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">No medicines found. Click "Add Medicine" to start!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards (below md) -->
+        <div class="md:hidden space-y-3">
+            {% for medicine in medicines %}
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1 min-w-0 pr-3">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-xs font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">#{{ forloop.counter }}</span>
+                            <p class="font-bold text-gray-900 text-sm leading-tight">{{ medicine.name }}</p>
+                        </div>
+                        <p class="text-xs text-gray-500">{{ medicine.manufacturer.name }}</p>
+                    </div>
+                    {% if medicine.is_available %}
+                    <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800 flex-shrink-0">Active</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800 flex-shrink-0">Hidden</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-4 text-sm mb-3 border-t border-gray-50 pt-3">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Stock</p>
+                        <p class="font-bold {% if medicine.stock_available < 10 %}text-red-600{% else %}text-gray-900{% endif %}">{{ medicine.stock_available }}</p>
+                    </div>
+                    <div class="w-px h-8 bg-gray-100"></div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Price</p>
+                        <p class="font-bold text-gray-900">₹{{ medicine.actual_price }}</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 border-t border-gray-50 pt-3">
+                    <a href="{% url 'edit_medicine' medicine.slug %}" class="flex-1 text-center py-2 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs hover:bg-blue-100 transition">
+                        Edit
+                    </a>
+                    <a href="{% url 'delete_medicine' medicine.slug %}" class="flex-1 text-center py-2 rounded-lg bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition">
+                        Delete
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 text-gray-500 text-sm">No medicines found. Click "Add Medicine" to start!</div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('search-filter-form');
+        const searchInput = form.querySelector('input[name="q"]');
+        const statusSelect = form.querySelector('select[name="status"]');
+        const resultsContainer = document.getElementById('inventory-results-container');
+
+        function fetchResults() {
+            resultsContainer.style.opacity = '0.4';
+            const searchParams = new URLSearchParams();
+            if (searchInput.value.trim() !== '') searchParams.set('q', searchInput.value.trim());
+            if (statusSelect.value !== '') searchParams.set('status', statusSelect.value);
+            const url = `${window.location.pathname}?${searchParams.toString()}`;
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const newContainer = doc.getElementById('inventory-results-container');
+                    if (newContainer) resultsContainer.innerHTML = newContainer.innerHTML;
+                    resultsContainer.style.opacity = '1';
+                    window.history.pushState({}, '', url);
+                })
+                .catch(() => { resultsContainer.style.opacity = '1'; });
+        }
+
+        let timeout = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(fetchResults, 400);
+        });
+        statusSelect.addEventListener('change', fetchResults);
+        form.addEventListener('submit', e => { e.preventDefault(); fetchResults(); });
+    });
+
+    
+    
+    function copyStoreLink() {
+        var copyText = document.getElementById("store-link");
+        var text = copyText.value;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                window.showToast('Link copied!', 'success');
+            }).catch(function () {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+    function fallbackCopy(text) {
+        var temp = document.createElement("textarea");
+        temp.value = text;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        try {
+            document.execCommand('copy');
+            window.showToast('Link copied!', 'success');
+        } catch (e) {
+            window.showToast('Copy failed. Please copy manually.', 'error');
+        }
+        document.body.removeChild(temp);
+    }
+</script>
+
+
+<div id="stockUpdateModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 transform scale-100 transition-transform">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-extrabold text-gray-900">Update Stock</h3>
+            <button type="button" onclick="closeStockModal()" class="text-gray-400 hover:text-red-500 bg-gray-100 hover:bg-red-50 rounded-full p-1 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <p class="text-sm text-gray-500 mb-5">Updating stock for: <br><strong id="modalMedName" class="text-[#1E3A8A] text-base"></strong></p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="update_stock" value="1">
+            <input type="hidden" name="medicine_id" id="modalMedId">
+            
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Stock Quantity</label>
+                <div class="relative">
+                    <input type="number" name="new_stock" id="modalMedStock" min="0" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg font-bold text-gray-900 focus:ring-0 focus:border-[#10B981] outline-none transition-colors" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-[#10B981] hover:bg-green-600 text-white font-extrabold text-lg py-3 rounded-xl transition-colors shadow-lg hover:shadow-green-200">
+                Save & Update Inventory
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // JS Function to Open and Close Modal smoothly
+    function openStockModal(medId, medName, currentStock) {
+        document.getElementById('modalMedId').value = medId;
+        document.getElementById('modalMedName').innerText = medName;
+        document.getElementById('modalMedStock').value = currentStock;
+        document.getElementById('stockUpdateModal').classList.remove('hidden');
+    }
+    
+    function closeStockModal() {
+        document.getElementById('stockUpdateModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Seller Dashboard | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-8">
+
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900 capitalize tracking-tight">
+                {% if user.agency_name %}
+                    {{ user.agency_name }} 
+                {% else %}
+                    Inventory Dashboard
+                {% endif %}
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">Manage your store's medicines and stock levels.</p>
+        </div>
+
+        <div class="flex gap-3 w-full md:w-auto">
+            <a href="{% url 'bulk_upload_medicines' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-[#10B981] text-[#10B981] hover:bg-green-50 px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Add Bulk Data(Excel)
+            </a>
+            
+            <a href="{% url 'add_medicine' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Add New Medicine
+            </a>
+        </div>
+        
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <form id="search-filter-form" method="GET" action="{% url 'seller_dashboard' %}" class="flex flex-col md:flex-row gap-4">
+            
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" name="q" value="{{ query }}" autocomplete="off" placeholder="Search medicine by name or composition..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm outline-none transition">
+            </div>
+
+            <div class="w-full md:w-56">
+                <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm bg-white outline-none cursor-pointer transition" >
+                    <option value="" {% if status_filter == '' %}selected{% endif %}>All Inventory</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active (In Stock)</option>
+                    <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Hidden (Out of Stock)</option>
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                
+                {% if query or status_filter %}
+                <a href="{% url 'seller_dashboard' %}" class="flex items-center justify-center px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition" title="Clear Filters">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Specific Store Link</h3>
+                <p class="text-xs text-blue-700">Customers using this link will only see medicines from your agency.</p>
+            </div>
+        </div>
+        
+        <div class="flex w-full md:w-auto">
+            <input type="text" id="store-link" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}?seller_id={{ user.id }}&locked=true" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
+            <button onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
+                Copy Link
+            </button>
+        </div>
+    </div>
+
+    <div id="inventory-results-container" class="transition-opacity duration-300">
+        {% if not medicines %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center mb-6">
+                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-lg font-bold text-gray-900">No medicines found!</h3>
+                <p class="text-sm text-gray-600 mt-1">We couldn't find any items matching your current search or status filter.</p>
+                {% if query or status_filter %}
+                    <a href="{% url 'seller_dashboard' %}" class="inline-block mt-4 text-[#1E3A8A] font-bold hover:underline">Clear all filters</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Medicine Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for medicine in medicines %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">{{ medicine.name }}</div>
+                            <div class="text-xs text-gray-500">{{ medicine.manufacturer.name }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-semibold {% if medicine.stock_available < 10 %}text-red-600{% else %}text-gray-900{% endif %}">
+                                {{ medicine.stock_available }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900">₹{{ medicine.actual_price }}</td>
+                        <td class="px-6 py-4">
+                            {% if medicine.is_available %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Hidden</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-sm space-x-3">
+                            <a href="{% url 'edit_medicine' medicine.slug %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                            <a href="{% url 'delete_medicine' medicine.slug %}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">No medicines found. Click "Add New Medicine" to start!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('search-filter-form');
+        const searchInput = form.querySelector('input[name="q"]');
+        const statusSelect = form.querySelector('select[name="status"]');
+        const resultsContainer = document.getElementById('inventory-results-container');
+
+        // Function jo background me data fetch karega
+        function fetchResults() {
+            // Halka sa fade out effect jab loading ho
+            resultsContainer.style.opacity = '0.4';
+
+            const formData = new FormData(form);
+            const searchParams = new URLSearchParams();
+            
+            // Query params set karna
+            if (searchInput.value.trim() !== '') searchParams.set('q', searchInput.value.trim());
+            if (statusSelect.value !== '') searchParams.set('status', statusSelect.value);
+
+            const url = `${window.location.pathname}?${searchParams.toString()}`;
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    // Naye page ka HTML parse karna aur sirf table wala hissa nikalna
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContainer = doc.getElementById('inventory-results-container');
+
+                    if (newContainer) {
+                        resultsContainer.innerHTML = newContainer.innerHTML;
+                    }
+                    
+                    // Wapas normal dikhana
+                    resultsContainer.style.opacity = '1';
+                    
+                    // URL ko update karna taaki browser refresh par search gayab na ho
+                    window.history.pushState({}, '', url);
+                })
+                .catch(error => {
+                    console.error("Search fetch failed:", error);
+                    resultsContainer.style.opacity = '1';
+                });
+        }
+
+        // 1. TYPING PAR AUTO-SEARCH (Debounce logic: jab type karna band karega tabhi search hoga)
+        let timeout = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(fetchResults, 400); // 400 milliseconds ka wait
+        });
+
+        // 2. DROPDOWN CHANGE PAR AUTO-SEARCH
+        statusSelect.addEventListener('change', fetchResults);
+
+        // 3. ENTER DABANE PAR BHI BINA REFRESH KE SEARCH KARE
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            fetchResults();
+        });
+    });
+</script>
+
+<script>
+        function copyStoreLink() {
+            var copyText = document.getElementById("store-link");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(copyText.value);
+            alert("Your store link has been copied!");
+        }
+    </script>
+{% endblock %} {% endcomment %}

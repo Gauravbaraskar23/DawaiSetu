@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-8 px-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-extrabold text-gray-900">
+            {% if user.is_store_staff %}Sales History{% else %}Order History{% endif %}
+        </h1>
+        
+        <div class="flex items-center gap-3">
+            <a href="{% url 'my_orders' %}" class="px-4 py-2 text-sm font-bold text-[#1E3A8A] bg-blue-50 hover:bg-blue-100 rounded-lg transition">Active Orders</a>
+            
+            {% if orders %}
+            <a href="{% url 'clear_all_history' %}" onclick="return confirm('Are you sure you want to delete your entire history? This cannot be undone.')" class="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Clear All History
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% comment %} <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"> {% endcomment %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+    <!-- Desktop -->
+    <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Order ID</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Items</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for order in orders %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-bold text-gray-900">#{{ order.id }}</td>
+                    <td class="px-6 py-4">
+                        {% for item in order.items.all %}
+                            <div class="mb-1">
+                                <div class="font-bold text-gray-700">{{ item.medicine.name }}</div>
+                                <div class="text-xs text-gray-500">Qty: {{ item.quantity }} | ₹{{ item.total_price }}</div>
+                            </div>
+                        {% endfor %}
+                        <div class="text-sm font-extrabold text-[#10B981] mt-2">Grand Total: ₹{{ order.get_total_price }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 text-xs font-bold rounded-full 
+                            {% if order.status == 'Completed' %}bg-green-100 text-green-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right flex items-center justify-end gap-4 h-full">
+                        <a href="{% url 'order_detail' order.id %}" class="text-[#1E3A8A] text-sm font-bold hover:underline">View</a>
+                        <a href="{% url 'delete_history_single' order.id %}" onclick="return confirm('Delete this record?')" class="text-red-400 hover:text-red-600 transition" title="Delete Record">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-6 py-12 text-center text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    No past orders found in history.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile View -->
+
+    <div class="lg:hidden divide-y divide-gray-200">
+        {% for order in orders %}
+
+        <div class="p-5">
+
+            <div class="flex justify-between items-start mb-4">
+
+                <div>
+
+                    <p class="text-xs text-gray-500">
+                        Order ID
+                    </p>
+
+                    <h2 class="font-black text-lg text-gray-900">
+                        #{{ order.id }}
+                    </h2>
+
+                </div>
+
+                <span class="px-3 py-1 rounded-full text-xs font-bold
+                {% if order.status == 'Completed' %}
+                    bg-green-100 text-green-700
+                {% else %}
+                    bg-red-100 text-red-700
+                {% endif %}">
+
+                    {{ order.status }}
+
+                </span>
+
+            </div>
+
+            <div class="space-y-3">
+
+                {% for item in order.items.all %}
+
+                <div class="border rounded-lg p-3 bg-gray-50">
+
+                    <h3 class="font-bold text-gray-800">
+                        {{ item.medicine.name }}
+                    </h3>
+
+                    <p class="text-sm text-gray-500 mt-1">
+
+                        Qty :
+                        <span class="font-semibold">
+                            {{ item.quantity }}
+                        </span>
+
+                        |
+
+                        ₹{{ item.total_price }}
+
+                    </p>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+
+                <span class="font-bold text-[#10B981]">
+
+                    Grand Total
+
+                </span>
+
+                <span class="text-lg font-black text-[#10B981]">
+
+                    ₹{{ order.get_total_price }}
+
+                </span>
+
+            </div>
+
+            <div class="mt-5 flex gap-3">
+
+                <a href="{% url 'order_detail' order.id %}"
+                class="flex-1 text-center bg-[#1E3A8A] text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
+
+                    View Details
+
+                </a>
+
+                <a href="{% url 'delete_history_single' order.id %}"
+                onclick="return confirm('Delete this record?')"
+                class="w-12 h-12 flex items-center justify-center rounded-lg border border-red-300 text-red-500 hover:bg-red-500 hover:text-white transition">
+
+                    <svg class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+
+                        <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+
+                    </svg>
+
+                </a>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="p-12 text-center text-gray-400">
+
+            <svg class="w-14 h-14 mx-auto mb-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+
+                <path stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+
+            </svg>
+
+            No past orders found.
+
+        </div>
+
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ medicine.name }} | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-6 md:py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm font-medium text-gray-500 mb-5 md:mb-8" aria-label="Breadcrumb">
+        <ol class="list-none p-0 inline-flex items-center flex-wrap gap-1">
+            <li class="flex items-center">
+                <a href="{% url 'home' %}" class="hover:text-[#1E3A8A] transition-colors">Store</a>
+                <svg class="fill-current w-3 h-3 mx-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg>
+            </li>
+            <li class="text-gray-800 font-semibold truncate max-w-[200px] md:max-w-none">{{ medicine.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2">
+
+            <!-- Image -->
+            <div class="p-6 md:p-12 bg-gray-50 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 min-h-[240px] md:min-h-[400px]">
+                {% if medicine.product_image %}
+                    <img id="product-img" src="{{ medicine.product_image.url }}" alt="{{ medicine.name }}" class="max-w-full h-auto max-h-[400px] object-contain drop-shadow-md cursor-zoom-in" onclick="openLightbox()">
+                {% else %}
+                    <div class="text-gray-300 flex flex-col items-center">
+                        <svg class="h-20 w-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span class="text-sm font-medium text-gray-400">No Image Available</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Lightbox Overlay -->
+            <div id="lightbox" onclick="closeLightbox()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center;">
+                <button onclick="closeLightbox()" style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.15); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <svg width="20" height="20" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <img id="lightbox-img" src="" alt="{{ medicine.name }}" style="max-width:90vw; max-height:90vh; width:min(500px, 90vw); object-fit:contain; border-radius:8px;">
+                {% comment %} <img id="lightbox-img" src="" alt="{{ medicine.name }}" style="max-width:90vw; max-height:90vh; object-fit:contain; border-radius:8px;"> {% endcomment %}
+            </div>
+
+            <script>
+                function openLightbox() {
+                    var lb = document.getElementById('lightbox');
+                    var src = document.getElementById('product-img').src;
+                    document.getElementById('lightbox-img').src = src;
+                    lb.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+                function closeLightbox() {
+                    document.getElementById('lightbox').style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeLightbox();
+                });
+            </script>
+
+            <!-- Details -->
+            <div class="p-5 md:p-12 flex flex-col">
+
+                <!-- Manufacturer + Name -->
+                <p class="text-xs font-bold text-[#10B981] uppercase tracking-widest mb-1">{{ medicine.manufacturer.name }}</p>
+                <h1 class="text-base md:text-2xl font-extrabold text-gray-900 leading-tight mb-4">{{ medicine.name }}</h1>
+
+                <!-- Price + Stock in one row -->
+                <div class="flex items-center gap-3 mb-5">
+                    {% if medicine.discounted_price %}
+                        <span class="text-xl md:text-2xl font-extrabold text-gray-900">&#8377;{{ medicine.discounted_price }}</span>
+                        <span class="text-sm text-gray-400 line-through">&#8377;{{ medicine.actual_price }}</span>
+                    {% else %}
+                        <span class="text-xl md:text-2xl font-extrabold text-gray-900">&#8377;{{ medicine.actual_price }}</span>
+                    {% endif %}
+                    <div class="ml-auto flex-shrink-0">
+                        {% if medicine.stock_available > 0 %}
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-green-800 bg-green-100 px-3 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                In Stock ({{ medicine.stock_available }})
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-red-800 bg-red-100 px-3 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                Out of Stock
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-gray-100 mb-5"></div>
+
+                <!-- Medicine Info Table -->
+                <div class="space-y-0 mb-5 rounded-xl border border-gray-100 overflow-hidden">
+                    <div class="flex text-sm border-b border-gray-100 last:border-b-0">
+                        <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Composition</div>
+                        <div class="w-3/5 px-4 py-3 text-gray-900 font-medium text-sm">{{ medicine.composition }}</div>
+                    </div>
+                    {% if medicine.molecule %}
+                    <div class="flex text-sm border-b border-gray-100">
+                        <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Molecule</div>
+                        <div class="w-3/5 px-4 py-3 text-gray-900 font-medium text-sm">{{ medicine.molecule.name }}</div>
+                    </div>
+                    {% endif %}
+                    {% if medicine.subcategory %}
+                    <div class="flex text-sm">
+                        <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Subcategory</div>
+                        <div class="w-3/5 px-4 py-3 text-gray-900 font-medium text-sm">{{ medicine.subcategory.name }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="mb-6">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description</p>
+                    <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{{ medicine.description }}</p>
+                </div>
+
+                <!-- CTA Buttons — always one row -->
+                {% if medicine.stock_available > 0 %}
+                    <div class="flex gap-3 mt-auto">
+                        <a href="{% url 'add_to_cart' medicine.id %}"
+                           class="add-to-cart-ajax flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-[#1E3A8A] bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-all duration-200 text-sm whitespace-nowrap">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 100 4 2 2 0 000-4z"></path></svg>
+                            Add to Cart
+                        </a>
+                        <a href="{% url 'place_order' medicine.slug %}"
+                           class="flex-1 flex items-center justify-center py-3 px-4 rounded-xl font-bold text-white bg-[#1E3A8A] hover:bg-blue-800 transition-all duration-200 text-sm shadow-md whitespace-nowrap">
+                            Buy Now
+                        </a>
+                    </div>
+                {% else %}
+                    <button disabled class="w-full py-3 rounded-xl font-bold text-white bg-gray-300 cursor-not-allowed text-sm mt-auto">
+                        Currently Unavailable
+                    </button>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

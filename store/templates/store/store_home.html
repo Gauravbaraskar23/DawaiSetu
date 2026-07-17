@@ -1,0 +1,637 @@
+{% extends 'base.html' %}
+
+{% block title %}Medicines | Meditrack{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===== MOBILE FILTER DRAWER ===== */
+#filter-drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 85%;
+    max-width: 360px;
+    background: #fff;
+    z-index: 999;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+}
+#filter-drawer.open {
+    transform: translateX(0);
+}
+#drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 998;
+}
+#drawer-overlay.open {
+    display: block;
+}
+
+/* Accordion in drawer */
+.drawer-accordion-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: none;
+    background: none;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #111827;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    text-align: left;
+}
+.drawer-accordion-btn svg.chevron {
+    transition: transform 0.25s;
+    flex-shrink: 0;
+}
+.drawer-accordion-btn.active svg.chevron {
+    transform: rotate(180deg);
+}
+.drawer-accordion-content {
+    display: none;
+    padding: 12px 16px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fafafa;
+}
+.drawer-accordion-content.open {
+    display: block;
+}
+
+/* ===== COMPACT PRODUCT CARD (mobile) ===== */
+@media (max-width: 767px) {
+    .product-card-img {
+        height: 96px !important;
+    }
+    .product-card-body {
+        padding: 8px !important;
+    }
+    .product-card-name {
+        font-size: 0.72rem !important;
+        font-weight: 700;
+    }
+    .product-card-mfr {
+        font-size: 0.6rem !important;
+    }
+    .product-card-price {
+        font-size: 0.78rem !important;
+        font-weight: 800;
+    }
+    .product-card-price-old {
+        font-size: 0.6rem !important;
+    }
+    .product-card-actions a {
+        padding: 4px 6px !important;
+        font-size: 0.65rem !important;
+    }
+    .product-card-actions svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    .product-card-footer {
+        padding-top: 6px !important;
+        margin-top: 6px !important;
+    }
+    /* 3-col grid on mobile */
+    .medicine-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+    }
+    /* Hide desktop sidebar */
+    .desktop-sidebar {
+        display: none !important;
+    }
+    /* Show mobile top bar */
+    .mobile-topbar {
+        display: flex !important;
+    }
+    .desktop-topbar {
+        display: none !important;
+    }
+}
+@media (min-width: 768px) {
+    .mobile-topbar { display: none !important; }
+    .desktop-topbar { display: flex !important; }
+    #filter-drawer, #drawer-overlay { display: none !important; }
+}
+</style>
+
+<div class="py-4 md:py-6">
+    <div class="mb-6 md:mb-8 flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Medical Inventory</h1>
+            <p class="mt-1 text-xs md:text-sm text-gray-500">Browse our complete catalog of available medicines.</p>
+        </div>
+        {% if is_locked %}
+        <div class="bg-blue-50 border border-blue-200 text-[#1E3A8A] px-3 py-2 rounded-lg text-xs md:text-sm font-bold shadow-sm">
+            <span>Viewing Specific Partner Store</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== MOBILE TOP BAR (Search + Filter Icon) ===== -->
+    <div class="mobile-topbar mb-4 gap-2 items-center">
+        <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" id="mobile-search" name="q" value="{{ query }}" autocomplete="off" placeholder="Search medicines..." class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm">
+        </div>
+        <button id="open-filter-btn" class="flex items-center gap-1.5 bg-[#1E3A8A] text-white px-3 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"></path></svg>
+            Filters
+        </button>
+    </div>
+
+    <!-- ===== MOBILE FILTER DRAWER ===== -->
+    <div id="drawer-overlay"></div>
+    <div id="filter-drawer">
+        <div class="flex items-center justify-between px-4 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <h2 class="text-base font-bold text-gray-900">Filters</h2>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'home' %}" class="text-sm text-red-600 font-medium">Clear All</a>
+                <button id="close-filter-btn" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pharmacy Accordion -->
+        <button class="drawer-accordion-btn" data-target="drawer-pharmacy">
+            <span>Pharmacy</span>
+            <svg class="chevron w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div class="drawer-accordion-content" id="drawer-pharmacy">
+            <div class="mb-2 relative">
+                <input type="text" data-search-drawer="drawer-pharmacy" placeholder="Find pharmacy..." class="w-full pl-3 pr-3 py-2 border border-gray-200 rounded-lg text-xs">
+            </div>
+            <div class="space-y-2 filter-drawer-list">
+                <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer {% if is_locked %}opacity-40 pointer-events-none{% endif %}">
+                    <input type="radio" name="drawer_seller_id" value="" {% if not selected_seller_id %}checked{% endif %} {% if is_locked %}disabled{% endif %} class="rounded-full border-gray-300 text-[#1E3A8A]">
+                    <span class="font-bold text-[#1E3A8A] text-xs">All Pharmacies</span>
+                </label>
+                {% for seller in sellers %}
+                <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer drawer-filter-item {% if is_locked and seller.id|stringformat:'s' != selected_seller_id|stringformat:'s' %}opacity-40 pointer-events-none{% endif %}" data-name="{{ seller.agency_name|lower }}">
+                    <input type="radio" name="drawer_seller_id" value="{{ seller.id }}"
+                        {% if seller.id|stringformat:'s' == selected_seller_id|stringformat:'s' %}checked{% endif %}
+                        {% if is_locked and seller.id|stringformat:'s' != selected_seller_id|stringformat:'s' %}disabled{% endif %}
+                        class="rounded-full border-gray-300 text-[#1E3A8A]">
+                    {% comment %} <span class="capitalize text-xs flex items-center gap-1">
+                        {{ seller.agency_name }}
+                        {% if seller.store_profile.is_verified %}
+                            <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>verified
+                        {% endif %}
+                    </span> {% endcomment %}
+                    <span class="capitalize flex items-center flex-wrap gap-1">
+                            {{ seller.agency_name }}
+                            
+                            {% if seller.store_profile.is_verified %}
+                                <span class="inline-flex items-center gap-0.5 text-blue-500 flex-shrink-0">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                    <span class="text-[10px] font-bold uppercase leading-none">Verified</span>
+                                </span>
+                            {% endif %}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Categories Accordion -->
+        <button class="drawer-accordion-btn" data-target="drawer-categories">
+            <span>Categories</span>
+            <svg class="chevron w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div class="drawer-accordion-content" id="drawer-categories">
+            <div class="mb-2">
+                <input type="text" data-search-drawer="drawer-categories" placeholder="Search categories..." class="w-full pl-3 pr-3 py-2 border border-gray-200 rounded-lg text-xs">
+            </div>
+            <div class="space-y-3 filter-drawer-list">
+                {% for category in categories %}
+                <div class="drawer-filter-item" data-name="{{ category.name|lower }}">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" name="drawer_category" value="{{ category.id }}" {% if category.id in selected_categories %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A]">
+                        <span class="text-xs font-medium text-gray-700">{{ category.name }}</span>
+                    </label>
+                    {% if category.subcategories.all %}
+                    <div class="ml-5 mt-1.5 space-y-1.5">
+                        {% for sub in category.subcategories.all %}
+                        <label class="flex items-center space-x-2 cursor-pointer drawer-filter-item" data-name="{{ sub.name|lower }}">
+                            <input type="checkbox" name="drawer_subcategory" value="{{ sub.id }}" {% if sub.id in selected_subcats %}checked{% endif %} class="rounded border-gray-300 text-[#10B981]">
+                            <span class="text-xs text-gray-600">{{ sub.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Manufacturer Accordion -->
+        <button class="drawer-accordion-btn" data-target="drawer-manufacturer">
+            <span>Manufacturer</span>
+            <svg class="chevron w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div class="drawer-accordion-content" id="drawer-manufacturer">
+            <div class="mb-2">
+                <input type="text" data-search-drawer="drawer-manufacturer" placeholder="Search manufacturers..." class="w-full pl-3 pr-3 py-2 border border-gray-200 rounded-lg text-xs">
+            </div>
+            <div class="space-y-2 filter-drawer-list">
+                {% for man in manufacturers %}
+                <label class="flex items-center space-x-2 cursor-pointer drawer-filter-item" data-name="{{ man.name|lower }}">
+                    <input type="checkbox" name="drawer_manufacturer" value="{{ man.id }}" {% if man.id in selected_manufacturers %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A]">
+                    <span class="text-xs text-gray-700">{{ man.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Active Molecule Accordion -->
+        <button class="drawer-accordion-btn" data-target="drawer-molecule">
+            <span>Active Molecule</span>
+            <svg class="chevron w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div class="drawer-accordion-content" id="drawer-molecule">
+            <div class="mb-2">
+                <input type="text" data-search-drawer="drawer-molecule" placeholder="Search molecules..." class="w-full pl-3 pr-3 py-2 border border-gray-200 rounded-lg text-xs">
+            </div>
+            <div class="space-y-2 filter-drawer-list">
+                {% for mol in molecules %}
+                <label class="flex items-center space-x-2 cursor-pointer drawer-filter-item" data-name="{{ mol.name|lower }}">
+                    <input type="checkbox" name="drawer_molecule" value="{{ mol.id }}" {% if mol.id in selected_molecules %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A]">
+                    <span class="text-xs text-gray-700">{{ mol.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="p-4">
+            <button id="apply-drawer-filters" class="w-full bg-[#1E3A8A] text-white py-3 rounded-xl font-bold text-sm">
+                Apply Filters
+            </button>
+        </div>
+    </div>
+    <!-- END MOBILE DRAWER -->
+
+    <form id="filter-form" method="GET" action="" class="flex flex-col md:flex-row gap-8">
+        
+        <!-- ===== DESKTOP SIDEBAR ===== -->
+        <aside class="desktop-sidebar w-full md:w-64 flex-shrink-0 space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-900">Filters</h2>
+                <a href="{% url 'home' %}" class="text-sm text-red-600 hover:underline">Clear All</a>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 filter-group">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Filter by Pharmacy</h3>
+                <div class="mb-3 relative">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" autocomplete="off" data-search-exclude placeholder="Find agency..." class="filter-search w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#1E3A8A] focus:border-transparent text-sm shadow-sm transition">
+                </div>
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-2 filter-list">
+                    <label class="flex items-center space-x-2 text-sm font-medium text-gray-700 filter-item {% if is_locked %}opacity-40 cursor-not-allowed pointer-events-none{% else %}cursor-pointer{% endif %}" data-name="all pharmacies">
+                        <input type="radio" name="seller_id" value="" {% if not selected_seller_id %}checked{% endif %} {% if is_locked %}disabled{% endif %} class="rounded-full border-gray-300 text-[#1E3A8A] focus:ring-[#1E3A8A]">
+                        <span class="font-bold text-[#1E3A8A]">All Pharmacies</span>
+                    </label>
+                    <hr class="border-gray-100 my-2 filter-divider">
+                    {% for seller in sellers %}
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 filter-item {% if is_locked and seller.id|stringformat:'s' != selected_seller_id|stringformat:'s' %}opacity-40 cursor-not-allowed pointer-events-none{% else %}cursor-pointer{% endif %}" data-name="{{ seller.agency_name|lower }}">
+                        <input type="radio" name="seller_id" value="{{ seller.id }}"
+                            {% if seller.id|stringformat:'s' == selected_seller_id|stringformat:'s' %}checked{% endif %}
+                            {% if is_locked and seller.id|stringformat:'s' != selected_seller_id|stringformat:'s' %}disabled{% endif %}
+                            class="rounded-full border-gray-300 text-[#1E3A8A] focus:ring-[#1E3A8A]">
+                        
+                        <span class="capitalize flex items-center flex-wrap gap-1">
+                            {{ seller.agency_name }}
+                            
+                            {% if seller.store_profile.is_verified %}
+                                <span class="inline-flex items-center gap-0.5 text-blue-500 flex-shrink-0">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                    <span class="text-[10px] font-bold uppercase leading-none">Verified</span>
+                                </span>
+                            {% endif %}
+                        </span>
+                    </label>
+                    {% endfor %}
+                    <p class="hidden text-xs text-center text-gray-500 py-2 filter-empty-msg">No agencies found.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 filter-group">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Categories</h3>
+                <div class="mb-3 relative">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" autocomplete="off" data-search-exclude placeholder="Search categories..." class="filter-search w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#1E3A8A] focus:border-transparent text-sm shadow-sm transition">
+                </div>
+                <div class="space-y-4 max-h-64 overflow-y-auto pr-2 filter-list">
+                    {% for category in categories %}
+                    <div class="filter-item" data-name="{{ category.name|lower }}">
+                        <label class="flex items-center space-x-2 text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="checkbox" name="category" value="{{ category.id }}" {% if category.id in selected_categories %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A] focus:ring-[#1E3A8A]">
+                            <span>{{ category.name }}</span>
+                        </label>
+                        {% if category.subcategories.all %}
+                        <div class="ml-6 mt-2 space-y-2">
+                            {% for sub in category.subcategories.all %}
+                            <label class="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer filter-sub-item" data-name="{{ sub.name|lower }}">
+                                <input type="checkbox" name="subcategory" value="{{ sub.id }}" {% if sub.id in selected_subcats %}checked{% endif %} class="rounded border-gray-300 text-[#10B981] focus:ring-[#10B981]">
+                                <span>{{ sub.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <p class="hidden text-xs text-center text-gray-500 py-2 filter-empty-msg">No categories found.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 filter-group">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Manufacturer</h3>
+                <div class="mb-3 relative">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" autocomplete="off" data-search-exclude placeholder="Search manufacturers..." class="filter-search w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#1E3A8A] focus:border-transparent text-sm shadow-sm transition">
+                </div>
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-2 filter-list">
+                    {% for man in manufacturers %}
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer filter-item" data-name="{{ man.name|lower }}">
+                        <input type="checkbox" name="manufacturer" value="{{ man.id }}" {% if man.id in selected_manufacturers %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A] focus:ring-[#1E3A8A]">
+                        <span>{{ man.name }}</span>
+                    </label>
+                    {% endfor %}
+                    <p class="hidden text-xs text-center text-gray-500 py-2 filter-empty-msg">No manufacturers found.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 filter-group">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Active Molecule</h3>
+                <div class="mb-3 relative">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" autocomplete="off" data-search-exclude placeholder="Search molecules..." class="filter-search w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#1E3A8A] focus:border-transparent text-sm shadow-sm transition">
+                </div>
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-2 filter-list">
+                    {% for mol in molecules %}
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer filter-item" data-name="{{ mol.name|lower }}">
+                        <input type="checkbox" name="molecule" value="{{ mol.id }}" {% if mol.id in selected_molecules %}checked{% endif %} class="rounded border-gray-300 text-[#1E3A8A] focus:ring-[#1E3A8A]">
+                        <span>{{ mol.name }}</span>
+                    </label>
+                    {% endfor %}
+                    <p class="hidden text-xs text-center text-gray-500 py-2 filter-empty-msg">No molecules found.</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col">
+            <!-- Desktop Search -->
+            <div class="desktop-topbar mb-6 gap-4">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" name="q" value="{{ query }}" autocomplete="off" placeholder="Search by medicine name, composition, or description..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm">
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="product-grid-container" class="transition-opacity duration-300">
+                <div class="medicine-grid grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for medicine in medicines %}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
+                        <a href="{% url 'medicine_detail' medicine.slug %}" class="block bg-gray-50 relative overflow-hidden product-card-img" style="height:160px;">
+                            {% if medicine.product_image %}
+                            <img src="{{ medicine.product_image.url }}" alt="{{ medicine.name }}" class="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform duration-300">
+                            {% else %}
+                            <div class="flex items-center justify-center w-full h-full text-gray-300">
+                                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div class="p-4 flex flex-col flex-grow product-card-body">
+                            <p class="text-xs font-semibold text-[#10B981] mb-1 truncate product-card-mfr">{{ medicine.manufacturer.name }}</p>
+                            <a href="{% url 'medicine_detail' medicine.slug %}" class="font-bold text-gray-900 hover:text-[#1E3A8A] truncate block mb-2 product-card-name" style="font-size:0.85rem;">
+                                {{ medicine.name }}
+                            </a>
+                            <div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100 product-card-footer product-card-actions">
+                                <div>
+                                    {% if medicine.discounted_price %}
+                                    <span class="font-extrabold text-gray-900 product-card-price">₹{{ medicine.discounted_price }}</span>
+                                    <span class="text-xs text-gray-400 line-through ml-1 product-card-price-old">₹{{ medicine.actual_price }}</span>
+                                    {% else %}
+                                    <span class="font-extrabold text-gray-900 product-card-price">₹{{ medicine.actual_price }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <a href="{% url 'add_to_cart' medicine.id %}" class="add-to-cart-ajax bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-[#1E3A8A] p-2 rounded transition-colors" title="Add to Cart">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 100 4 2 2 0 000-4z"></path></svg>
+                                    </a>
+                                    <a href="{% url 'medicine_detail' medicine.slug %}" class="hidden md:inline-block bg-[#1E3A8A] text-white px-2 py-1.5 rounded text-xs font-semibold hover:bg-blue-800 transition">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <h3 class="text-lg font-medium text-gray-900">No medicines found</h3>
+                        <p class="text-gray-500 mt-1">Try adjusting your search or clearing some filters.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== DESKTOP FILTER LOGIC (unchanged) =====
+    const form = document.getElementById('filter-form');
+    const gridContainer = document.getElementById('product-grid-container');
+    const desktopSearch = form.querySelector('input[name="q"]');
+
+    function fetchResults(params) {
+        gridContainer.style.opacity = '0.4';
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('locked') === 'true') params.set('locked', 'true');
+        const url = `${window.location.pathname}?${params.toString()}`;
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const newGrid = doc.getElementById('product-grid-container');
+                if (newGrid) gridContainer.innerHTML = newGrid.innerHTML;
+                gridContainer.style.opacity = '1';
+                window.history.pushState({}, '', url);
+            });
+    }
+
+    function getDesktopParams() {
+        return new URLSearchParams(new FormData(form));
+    }
+
+    form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+        el.addEventListener('change', () => fetchResults(getDesktopParams()));
+    });
+
+    let desktopTimeout = null;
+    if (desktopSearch) {
+        desktopSearch.addEventListener('input', () => {
+            clearTimeout(desktopTimeout);
+            desktopTimeout = setTimeout(() => fetchResults(getDesktopParams()), 400);
+        });
+    }
+    form.addEventListener('submit', e => { e.preventDefault(); fetchResults(getDesktopParams()); });
+
+    // ===== DESKTOP SIDEBAR SEARCH =====
+    document.querySelectorAll('.filter-group').forEach(group => {
+        const searchInput = group.querySelector('.filter-search');
+        const items = group.querySelectorAll('.filter-item');
+        const emptyMsg = group.querySelector('.filter-empty-msg');
+        const divider = group.querySelector('.filter-divider');
+        if (!searchInput) return;
+        searchInput.addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            let visible = 0;
+            items.forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                let hasVisibleSub = false;
+                item.querySelectorAll('.filter-sub-item').forEach(sub => {
+                    const sn = sub.getAttribute('data-name') || '';
+                    const show = sn.includes(term) || name.includes(term);
+                    sub.style.display = show ? 'flex' : 'none';
+                    if (show) hasVisibleSub = true;
+                });
+                if (name.includes(term) || hasVisibleSub) {
+                    item.style.display = item.tagName.toLowerCase() === 'div' ? 'block' : 'flex';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            if (emptyMsg) emptyMsg.classList.toggle('hidden', visible > 0);
+            if (divider) divider.style.display = term.length > 0 ? 'none' : 'block';
+        });
+        searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    });
+
+    // ===== MOBILE DRAWER =====
+    const drawer = document.getElementById('filter-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const openBtn = document.getElementById('open-filter-btn');
+    const closeBtn = document.getElementById('close-filter-btn');
+    const mobileSearch = document.getElementById('mobile-search');
+
+    function openDrawer() {
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+
+    // Accordion buttons in drawer
+    document.querySelectorAll('.drawer-accordion-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-target');
+            const content = document.getElementById(targetId);
+            const isOpen = content.classList.contains('open');
+            // Close all
+            document.querySelectorAll('.drawer-accordion-content').forEach(c => c.classList.remove('open'));
+            document.querySelectorAll('.drawer-accordion-btn').forEach(b => b.classList.remove('active'));
+            if (!isOpen) {
+                content.classList.add('open');
+                this.classList.add('active');
+            }
+        });
+    });
+
+    // Drawer search within each accordion
+    document.querySelectorAll('[data-search-drawer]').forEach(input => {
+        input.addEventListener('input', function () {
+            const term = this.value.toLowerCase();
+            const containerId = this.getAttribute('data-search-drawer');
+            const container = document.getElementById(containerId);
+            container.querySelectorAll('.drawer-filter-item').forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                item.style.display = name.includes(term) ? '' : 'none';
+            });
+        });
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    });
+
+    // Apply drawer filters button
+    const applyBtn = document.getElementById('apply-drawer-filters');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+            const params = new URLSearchParams();
+
+            // Mobile search
+            const mq = mobileSearch ? mobileSearch.value.trim() : '';
+            if (mq) params.set('q', mq);
+
+            // Seller (radio)
+            const sellerRadio = document.querySelector('input[name="drawer_seller_id"]:checked');
+            if (sellerRadio && sellerRadio.value) params.set('seller_id', sellerRadio.value);
+
+            // Categories (checkboxes)
+            document.querySelectorAll('input[name="drawer_category"]:checked').forEach(el => params.append('category', el.value));
+            document.querySelectorAll('input[name="drawer_subcategory"]:checked').forEach(el => params.append('subcategory', el.value));
+
+            // Manufacturers
+            document.querySelectorAll('input[name="drawer_manufacturer"]:checked').forEach(el => params.append('manufacturer', el.value));
+
+            // Molecules
+            document.querySelectorAll('input[name="drawer_molecule"]:checked').forEach(el => params.append('molecule', el.value));
+
+            closeDrawer();
+            fetchResults(params);
+        });
+    }
+
+    // Mobile search live
+    if (mobileSearch) {
+        let mobileTimeout = null;
+        mobileSearch.addEventListener('input', () => {
+            clearTimeout(mobileTimeout);
+            mobileTimeout = setTimeout(() => {
+                const params = getDesktopParams();
+                params.set('q', mobileSearch.value);
+                fetchResults(params);
+            }, 400);
+        });
+    }
+});
+</script>
+
+{% endblock %}

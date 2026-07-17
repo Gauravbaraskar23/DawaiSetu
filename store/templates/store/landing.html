@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to Meditrack | Smart Medical Inventory{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO SECTION ===== -->
+<div class="relative bg-white overflow-hidden rounded-3xl shadow-sm border border-gray-100 mb-10 md:mb-12">
+    <div class="max-w-7xl mx-auto">
+        <div class="relative z-10 pb-10 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-14 xl:pb-16 px-6 md:px-8 pt-5 sm:pt-8 lg:pt-6">
+            <main class="mt-2 sm:mt-4 md:mt-6 lg:mt-6 xl:mt-8">
+                <div class="sm:text-center lg:text-left">
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-50 text-[#1E3A8A] text-xs md:text-sm font-bold tracking-wide mb-4 border border-blue-100">
+                        V 1.0 Live
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-gray-900 leading-tight">
+                        <span class="block">Smart healthcare</span>
+                        <span class="block text-[#10B981]">inventory management.</span>
+                    </h1>
+                    <p class="mt-4 text-sm sm:text-base md:text-lg text-gray-500 sm:max-w-xl sm:mx-auto lg:mx-0 leading-relaxed">
+                        Meditrack connects customers with essential medicines while empowering pharmacies with real-time stock dashboards, automated pricing, and seamless inventory tracking.
+                    </p>
+                    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:justify-center lg:justify-start gap-3">
+                        <a href="{% url 'home' %}" class="flex items-center justify-center px-6 py-3 md:py-4 border border-transparent text-sm md:text-base font-bold rounded-xl text-white bg-[#1E3A8A] hover:bg-blue-800 transition-colors shadow-md">
+                            Browse Medicines
+                        </a>
+                        {% if not user.is_authenticated %}
+                        <a href="{% url 'signup' %}" class="flex items-center justify-center px-6 py-3 md:py-4 border border-gray-300 text-sm md:text-base font-bold rounded-xl text-[#1E3A8A] bg-white hover:bg-gray-50 transition-colors shadow-sm">
+                            Register Pharmacy
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Stats row -->
+                    <div class="mt-8 md:mt-10 flex items-center gap-6 sm:justify-center lg:justify-start flex-wrap">
+                        <div class="text-center">
+                            <p class="text-2xl font-extrabold text-[#1E3A8A]">500+</p>
+                            <p class="text-xs text-gray-500 font-medium mt-0.5">Medicines Listed</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-200"></div>
+                        <div class="text-center">
+                            <p class="text-2xl font-extrabold text-[#10B981]">50+</p>
+                            <p class="text-xs text-gray-500 font-medium mt-0.5">Partner Pharmacies</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-200"></div>
+                        <div class="text-center">
+                            <p class="text-2xl font-extrabold text-[#1E3A8A]">24/7</p>
+                            <p class="text-xs text-gray-500 font-medium mt-0.5">Always Available</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <!-- Right side watermark - desktop only -->
+    <div class="hidden lg:flex lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gradient-to-br from-blue-50 to-green-50 border-l border-gray-100 items-center justify-center">
+        <div class="text-center">
+            <img src="{% static 'images/favicon.svg' %}" alt="Meditrack" class="h-48 w-48 opacity-15 mx-auto mb-6">
+            <div class="space-y-3 px-12">
+                <div class="flex items-center gap-3 bg-white/80 px-4 py-3 rounded-xl shadow-sm border border-gray-100">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    <span class="text-sm font-semibold text-gray-600">Real-time inventory sync</span>
+                </div>
+                <div class="flex items-center gap-3 bg-white/80 px-4 py-3 rounded-xl shadow-sm border border-gray-100">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                    <span class="text-sm font-semibold text-gray-600">Verified pharmacy partners</span>
+                </div>
+                <div class="flex items-center gap-3 bg-white/80 px-4 py-3 rounded-xl shadow-sm border border-gray-100">
+                    <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                    <span class="text-sm font-semibold text-gray-600">Secure order management</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== HOW IT WORKS ===== -->
+<div class="mb-10 md:mb-12 px-1">
+    <div class="text-center mb-8">
+        <h2 class="text-xs md:text-sm text-[#10B981] font-bold tracking-widest uppercase mb-2">Simple Process</h2>
+        <p class="text-2xl md:text-3xl font-extrabold text-gray-900">How Meditrack Works</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        <div class="relative flex flex-row sm:flex-col items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-extrabold text-lg sm:mb-2">1</div>
+            <div class="sm:text-center">
+                <h3 class="font-bold text-gray-900 text-sm md:text-base">Browse Medicines</h3>
+                <p class="text-xs md:text-sm text-gray-500 mt-1 leading-relaxed">Search by name, molecule, or category across all verified pharmacies.</p>
+            </div>
+        </div>
+        <div class="relative flex flex-row sm:flex-col items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 text-[#10B981] flex items-center justify-center font-extrabold text-lg sm:mb-2">2</div>
+            <div class="sm:text-center">
+                <h3 class="font-bold text-gray-900 text-sm md:text-base">Place Your Order</h3>
+                <p class="text-xs md:text-sm text-gray-500 mt-1 leading-relaxed">Add to cart and confirm your order with delivery details in seconds.</p>
+            </div>
+        </div>
+        <div class="relative flex flex-row sm:flex-col items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-extrabold text-lg sm:mb-2">3</div>
+            <div class="sm:text-center">
+                <h3 class="font-bold text-gray-900 text-sm md:text-base">Track & Receive</h3>
+                <p class="text-xs md:text-sm text-gray-500 mt-1 leading-relaxed">Chat with the seller, track status, and download your invoice anytime.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-12">
+            <h2 class="text-sm text-[#10B981] font-bold tracking-widest uppercase mb-2">Featured Partners</h2>
+            <h3 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                This Month's Top 6 Inventories
+            </h3>
+            
+            {% if locked_seller_id %}
+                <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 border border-blue-200 py-2.5 px-5 rounded-lg shadow-sm">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <p class="text-sm text-blue-800 font-bold">You are currently locked to a specific partner store.</p>
+                </div>
+            {% else %}
+                <p class="mt-4 text-base text-gray-500 max-w-2xl mx-auto">Shop directly from our highest-rated and verified local agencies ensuring priority service and quality authenticity.</p>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            {% for seller in sellers %}
+                
+                {% if not locked_seller_id or seller.id|stringformat:'s' == locked_seller_id %}
+                    <a href="{% url 'home' %}?seller_id={{ seller.id }}{% if locked_seller_id %}&locked=true{% endif %}" class="group bg-white flex flex-col p-3 md:p-6 rounded-xl md:rounded-2xl border border-gray-200 hover:border-[#1E3A8A] hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center h-full relative overflow-hidden">
+
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-blue-50 group-hover:bg-[#1E3A8A] group-hover:text-white flex items-center justify-center mx-auto text-[#1E3A8A] font-black text-sm md:text-2xl mb-2 md:mb-5 mt-1 md:mt-2 transition-colors duration-300 shadow-sm">
+                            {{ seller.agency_name|slice:":1"|upper }}
+                        </div>
+                        <h4 class="font-extrabold text-gray-900 group-hover:text-[#1E3A8A] transition-colors capitalize text-xs md:text-lg flex items-center justify-center gap-1 w-full px-1">
+                            <span class="truncate min-w-0">{{ seller.agency_name }}</span>
+                            {% if seller.store_profile.is_verified %}
+                                <svg class="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            {% endif %}
+                        </h4>
+                        {% comment %} <h4 class="font-extrabold text-gray-900 group-hover:text-[#1E3A8A] transition-colors truncate capitalize text-xs md:text-lg flex items-center justify-center gap-1">
+                            {{ seller.agency_name }}
+                            {% if seller.store_profile.is_verified %}
+                                <svg class="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            {% endif %}
+                        </h4> {% endcomment %}
+                        <p class="text-[10px] md:text-xs text-gray-500 mt-1 mb-2 md:mb-6 flex-grow hidden sm:block">Verified Premium Vendor</p>
+
+                        <div class="mt-auto w-full py-1.5 md:py-2.5 bg-green-50 rounded-lg text-[10px] md:text-sm font-bold text-[#10B981] group-hover:bg-[#10B981] group-hover:text-white transition-colors flex items-center justify-center gap-1 md:gap-2">
+                            <span class="hidden sm:inline">View Inventory</span><span class="sm:hidden">View</span>
+                            <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </div>
+                    </a>
+                {% else %}
+                    <div class="flex flex-col p-3 md:p-6 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100 text-center opacity-50 cursor-not-allowed h-full filter grayscale-[50%]">
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gray-200 flex items-center justify-center mx-auto text-gray-400 font-black text-sm md:text-2xl mb-2 md:mb-5 mt-1 md:mt-2">
+                            {{ seller.agency_name|slice:":1"|upper }}
+                        </div>
+                        <h4 class="font-extrabold text-gray-900 capitalize text-xs md:text-lg flex items-center justify-center gap-1 w-full px-1">
+                            <span class="truncate min-w-0">{{ seller.agency_name }}</span>
+                            {% if seller.store_profile.is_verified %}
+                                <svg class="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            {% endif %}
+                        </h4>
+                        {% comment %} <h4 class="font-extrabold text-gray-900 truncate capitalize text-xs md:text-lg flex items-center justify-center gap-1">
+                            {{ seller.agency_name }}
+                            {% if seller.store_profile.is_verified %}
+                                <svg class="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" title="Verified Pharmacy">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            {% endif %}
+                        </h4> {% endcomment %}
+                        <p class="text-[10px] md:text-xs text-gray-400 mt-1 mb-2 md:mb-6 flex-grow hidden sm:block">Verified Vendor</p>
+
+                        <div class="mt-auto w-full py-1.5 md:py-2.5 bg-gray-200 rounded-lg text-[10px] md:text-sm font-bold text-gray-500 flex items-center justify-center gap-1 md:gap-2">
+                            <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <span class="hidden sm:inline">Unavailable</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% empty %}
+                <div class="col-span-full bg-yellow-50 border border-yellow-200 rounded-2xl p-8 text-center text-yellow-800">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <p class="font-bold text-lg">No Premium Partners Yet</p>
+                    <p class="text-sm mt-1 text-yellow-700">Premium vendor spots are currently available. Check back soon!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% comment %} 
+<!-- ===== PARTNER PHARMACIES ===== -->
+<div class="py-10 md:py-16 bg-white border-t border-gray-100 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-10 md:mb-12">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-8 md:mb-12">
+            <h2 class="text-xs md:text-sm text-[#10B981] font-bold tracking-widest uppercase mb-2">Our Medical Network</h2>
+            <p class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-tight">
+                Shop from local trusted agencies
+            </p>
+            {% if locked_seller_id %}
+            <p class="mt-3 text-sm text-blue-600 font-bold bg-blue-50 py-2 px-4 rounded-lg inline-block border border-blue-200">You are currently locked to a specific partner store.</p>
+            {% else %}
+            <p class="mt-3 text-sm text-gray-500">Select a pharmacy to browse their direct catalog.</p>
+            {% endif %}
+        </div>
+
+        <!-- 3 columns always -->
+        <div class="grid grid-cols-3 gap-3 md:gap-6">
+            {% for seller in sellers %}
+                {% if not locked_seller_id or seller.id|stringformat:'s' == locked_seller_id %}
+                <a href="{% url 'home' %}?seller_id={{ seller.id }}{% if locked_seller_id %}&locked=true{% endif %}" class="group flex flex-col items-center p-3 md:p-6 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100 hover:border-blue-200 hover:bg-white hover:shadow-md transition-all duration-200 text-center">
+                    <div class="w-9 h-9 md:w-12 md:h-12 rounded-full bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center text-[#1E3A8A] font-bold text-sm md:text-lg mb-2 md:mb-4 transition-colors flex-shrink-0">
+                        {{ seller.agency_name|slice:":1"|upper }}
+                    </div>
+                    <h3 class="font-bold text-gray-900 group-hover:text-[#1E3A8A] transition-colors text-xs md:text-sm capitalize leading-tight line-clamp-2">{{ seller.agency_name }}</h3>
+                    <p class="text-[10px] md:text-xs text-gray-400 mt-0.5 hidden md:block">Authorized Vendor</p>
+                    <div class="mt-2 md:mt-4 text-[10px] md:text-xs font-semibold text-[#10B981]">
+                        View &rarr;
+                    </div>
+                </a>
+                {% else %}
+                <div class="opacity-40 cursor-not-allowed flex flex-col items-center p-3 md:p-6 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100 text-center">
+                    <div class="w-9 h-9 md:w-12 md:h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 font-bold text-sm md:text-lg mb-2 md:mb-4">
+                        {{ seller.agency_name|slice:":1"|upper }}
+                    </div>
+                    <h3 class="font-bold text-gray-400 text-xs md:text-sm capitalize leading-tight line-clamp-2">{{ seller.agency_name }}</h3>
+                    <div class="mt-2 md:mt-4 text-[10px] md:text-xs font-semibold text-gray-400">Unavailable</div>
+                </div>
+                {% endif %}
+            {% empty %}
+            <div class="col-span-3 text-center py-8 text-sm text-gray-500 italic">
+                No medical agencies are registered online yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> {% endcomment %}
+
+<!-- ===== WHY MEDITRACK ===== -->
+<div class="py-10 md:py-12 bg-gray-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-10 md:mb-12">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-8 md:mb-12">
+            <h2 class="text-xs md:text-sm text-[#10B981] font-bold tracking-widest uppercase mb-2">Why Meditrack?</h2>
+            <p class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900">A better way to manage medicine</p>
+        </div>
+
+        <!-- 5 cards: top row 3, bottom row 2 -->
+        <div class="grid grid-cols-3 gap-2 md:gap-8 mb-2 md:mb-8">
+            <!-- Instant Search -->
+            <div class="bg-white p-3 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col gap-0 items-stretch">
+                <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-blue-100 text-[#1E3A8A] flex items-center justify-center mb-2 md:mb-5">
+                    <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-[11px] md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight">Instant Search</h3>
+                    <p class="block text-[10px]  md:text-sm text-gray-500 leading-relaxed mt-1">Search thousands of medicines by brand name, active molecule, or manufacturer instantly — results appear as you type, no waiting required.</p>
+                </div>
+            </div>
+
+            <!-- Seller Dashboards -->
+            <div class="bg-white p-3 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col gap-0 items-stretch">
+                <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-green-100 text-[#10B981] flex items-center justify-center mb-2 md:mb-5">
+                    <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-[11px] md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight">Seller Dashboards</h3>
+                    <p class="block text-[10px]  md:text-sm text-gray-500 leading-relaxed mt-1">Pharmacies get dedicated workspaces to track inventory levels, update stock availability, and manage bulk uploads via Excel in one place.</p>
+                </div>
+            </div>
+
+            <!-- Secure & Reliable -->
+            <div class="bg-white p-3 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col gap-0 items-stretch">
+                <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-2 md:mb-5">
+                    <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-[11px] md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight">Secure & Reliable</h3>
+                    <p class="block text-[10px]  md:text-sm text-gray-500 leading-relaxed mt-1">Your medical data, pricing, and user roles are kept strictly secure. All transactions are isolated and protected — buyers and sellers only see what belongs to them.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom row: 2 cards left-aligned in same 3-col grid -->
+        <div class="grid grid-cols-3 gap-2 md:gap-8">
+            <!-- Built-in Chat -->
+            <div class="bg-white p-3 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col gap-0 items-stretch">
+                <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-yellow-100 text-yellow-600 flex items-center justify-center mb-2 md:mb-5">
+                    <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-[11px] md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight">Direct Chat</h3>
+                    <p class="block text-[10px]  md:text-sm text-gray-500 leading-relaxed mt-1">Communicate directly with the seller or customer on every order. Ask questions, confirm delivery details, and resolve issues — all within the platform.</p>
+                </div>
+            </div>
+
+            <!-- Order Tracking -->
+            <div class="bg-white p-3 md:p-8 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col gap-0 items-stretch">
+                <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-orange-100 text-orange-500 flex items-center justify-center mb-2 md:mb-5">
+                    <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-[11px] md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight">Order Management</h3>
+                    <p class="block text-[10px]  md:text-sm text-gray-500 leading-relaxed mt-1">Track every order from placement to delivery. View status updates in real time, download invoices, and maintain a complete purchase history — anytime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

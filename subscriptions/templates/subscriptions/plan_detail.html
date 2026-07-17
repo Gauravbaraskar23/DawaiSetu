@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}{{ plan.name }} | Plan Details | Meditrack{% endblock %}
+
+{% block content %}
+<div class="py-10 md:py-16 bg-gray-50 min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Back link -->
+        <a href="{% url 'pricing' %}" class="inline-flex items-center text-sm font-semibold text-[#1E3A8A] hover:text-blue-800 transition mb-6">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to All Plans
+        </a>
+
+        <!-- Header Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    {% if plan.max_medicines == -1 %}
+                    <span class="inline-block bg-gradient-to-r from-blue-600 to-blue-800 text-white text-[10px] font-black uppercase tracking-wider py-1 px-3 rounded-full mb-2">Best Value</span>
+                    {% endif %}
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">{{ plan.name }}</h1>
+                    <p class="text-sm text-gray-500 mt-1">Valid for {{ plan.duration_days }} days</p>
+                </div>
+                <div class="text-left sm:text-right">
+                    <p class="text-3xl md:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
+                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">One-time / {{ plan.duration_days }} days</p>
+                </div>
+                
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">If Purchased Today</p>
+                    <p class="text-sm font-extrabold text-gray-900">{{ today|date:"d M Y" }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Plan Expires On</p>
+                    <p class="text-sm font-extrabold text-red-600">{{ expiry_date|date:"d M Y" }}</p>
+                </div>
+            </div>
+
+            <a href="{% url 'checkout' plan.id %}?type=inventory" class="mt-6 w-full block py-3.5 px-4 {% if plan.price == 0 %}bg-gray-100 text-gray-800 hover:bg-gray-200{% else %}bg-[#1E3A8A] text-white hover:bg-blue-800{% endif %} font-bold rounded-xl transition text-center shadow-sm text-base">
+                {% if plan.price == 0 %}Get Started Free{% else %}Buy This Plan{% endif %}
+            </a>
+        </div>
+
+        <!-- Feature Breakdown -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 class="text-lg font-extrabold text-gray-900 mb-5">What's Included</h2>
+
+            <div class="divide-y divide-gray-100">
+
+                <!-- Medicine Limit -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-blue-50 text-[#1E3A8A] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Medicine Listing Limit</span>
+                    </div>
+                    <span class="text-sm font-extrabold text-gray-900">
+                        {% if plan.max_medicines == -1 %}Unlimited{% else %}{{ plan.max_medicines }} Medicines{% endif %}
+                    </span>
+                </div>
+
+                <!-- Store Link -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.allow_custom_link %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.allow_custom_link %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Personal Store Link</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.allow_custom_link %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.allow_custom_link %}Included{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+                <!-- Custom Domain -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.has_custom_domain %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.has_custom_domain %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Custom Subdomain (yourname.meditrack.com)</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.has_custom_domain %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.has_custom_domain %}Included{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+                <!-- Analytics -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.has_analytics_dashboard %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.has_analytics_dashboard %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Sales & Inventory Analytics Dashboard</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.has_analytics_dashboard %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.has_analytics_dashboard %}Included{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+                <!-- Stock Alerts -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.has_stock_alerts %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.has_stock_alerts %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Automated Low-Stock Alerts</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.has_stock_alerts %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.has_stock_alerts %}Included{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+                <!-- Export Data -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.can_export_data %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.can_export_data %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Export Orders to Excel/CSV</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.can_export_data %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.can_export_data %}Included{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+                <!-- Staff Accounts -->
+                <div class="flex items-center justify-between py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 {% if plan.max_staff_accounts > 0 %}bg-green-50 text-[#10B981]{% else %}bg-gray-100 text-gray-300{% endif %}">
+                            {% if plan.max_staff_accounts > 0 %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Additional Staff Accounts</span>
+                    </div>
+                    <span class="text-sm font-bold {% if plan.max_staff_accounts > 0 %}text-[#10B981]{% else %}text-gray-400{% endif %}">
+                        {% if plan.max_staff_accounts > 0 %}{{ plan.max_staff_accounts }} Account{{ plan.max_staff_accounts|pluralize }}{% else %}Not Included{% endif %}
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="mt-6 text-center">
+            <a href="{% url 'checkout' plan.id %}?type=inventory" class="inline-block w-full sm:w-auto py-3.5 px-10 {% if plan.price == 0 %}bg-gray-100 text-gray-800 hover:bg-gray-200{% else %}bg-[#1E3A8A] text-white hover:bg-blue-800{% endif %} font-bold rounded-xl transition shadow-sm text-base">
+                {% if plan.price == 0 %}Get Started Free{% else %}Buy {{ plan.name }}{% endif %}
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
