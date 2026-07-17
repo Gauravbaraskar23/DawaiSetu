@@ -1,5 +1,5 @@
 """
-Meditrack — Automated Test Suite
+DawaiSetu — Automated Test Suite
 ==================================
 Place this file as store/tests.py (or any single app's tests.py).
 It imports models/views across accounts, store, subscriptions, orders,

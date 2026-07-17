@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}My Account | Meditrack{% endblock %}
+{% block title %}My Account | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto py-6 md:py-8 px-4 sm:px-6 lg:px-8">
@@ -352,7 +352,7 @@
                                 <a href="{% url 'medicine_detail' item.medicine.slug %}" class="font-extrabold text-base md:text-lg text-gray-900 hover:text-[#1E3A8A] transition-colors block truncate">
                                     {{ item.medicine.name }}
                                 </a>
-                                <p class="text-xs text-gray-400 capitalize mt-0.5 font-medium">Sold by: {{ item.medicine.seller.agency_name|default:"Meditrack Catalog" }}</p>
+                                <p class="text-xs text-gray-400 capitalize mt-0.5 font-medium">Sold by: {{ item.medicine.seller.agency_name|default:"DawaiSetu Catalog" }}</p>
                             </div>
                             <span class="font-black text-[#1E3A8A] text-lg flex-shrink-0" id="item-total-{{ item.id }}">₹{{ item.get_item_total }}</span>
                         </div>
@@ -572,7 +572,7 @@
 
 {% comment %} {% extends 'base.html' %}
 
-{% block title %}My Account | Meditrack{% endblock %}
+{% block title %}My Account | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto py-6 md:py-8 px-4 sm:px-6 lg:px-8">
@@ -886,7 +886,7 @@
                                 <a href="{% url 'medicine_detail' item.medicine.slug %}" class="font-extrabold text-base md:text-lg text-gray-900 hover:text-[#1E3A8A] transition-colors block truncate">
                                     {{ item.medicine.name }}
                                 </a>
-                                <p class="text-xs text-gray-400 capitalize mt-0.5 font-medium">Sold by: {{ item.medicine.seller.agency_name|default:"Meditrack Catalog" }}</p>
+                                <p class="text-xs text-gray-400 capitalize mt-0.5 font-medium">Sold by: {{ item.medicine.seller.agency_name|default:"DawaiSetu Catalog" }}</p>
                             </div>
                             <span class="font-black text-[#1E3A8A] text-lg flex-shrink-0" id="item-total-{{ item.id }}">₹{{ item.get_item_total }}</span>
                         </div>

@@ -78,7 +78,7 @@ The platform is built to scale from a single-owner pharmacy to a multi-staff ope
 ## Project Structure
 
 ```
-meditrack/
+DawaiSetu/
 ├── accounts/           # Custom user model, auth, signup/login
 ├── store/               # Medicines, inventory, seller dashboard, staff management, analytics
 ├── orders/              # Cart, orders, chat, invoices, profile
@@ -86,7 +86,7 @@ meditrack/
 ├── notifications/        # In-app notification system
 ├── templates/            # Shared templates (base, registration)
 ├── static/                # Static assets
-└── meditrack/             # Project settings, root URLs
+└── DawaiSetu/             # Project settings, root URLs
 ```
 
 ---
@@ -103,8 +103,8 @@ meditrack/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/<your-username>/meditrack.git
-   cd meditrack
+   git clone https://github.com/<your-username>/DawaiSetu.git
+   cd DawaiSetu
    ```
 
 2. **Create and activate a virtual environment**
@@ -130,7 +130,7 @@ meditrack/
 
 5. **Create the MySQL database**
    ```sql
-   CREATE DATABASE meditrack;
+   CREATE DATABASE DawaiSetu;
    ```
 
 6. **Run migrations**
@@ -209,4 +209,4 @@ This project is proprietary and not currently licensed for public redistribution
 
 ## Contact
 
-For support or inquiries, reach out at **meditracksupportcontact@gmail.com**.
+For support or inquiries, reach out at **DawaiSetusupportcontact@gmail.com**.

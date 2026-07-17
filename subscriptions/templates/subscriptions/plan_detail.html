@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ plan.name }} | Plan Details | Meditrack{% endblock %}
+{% block title %}{{ plan.name }} | Plan Details | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="py-10 md:py-16 bg-gray-50 min-h-screen">
@@ -90,7 +90,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             {% endif %}
                         </div>
-                        <span class="text-sm font-semibold text-gray-700">Custom Subdomain (yourname.meditrack.com)</span>
+                        <span class="text-sm font-semibold text-gray-700">Custom Subdomain (yourname.DawaiSetu.com)</span>
                     </div>
                     <span class="text-sm font-bold {% if plan.has_custom_domain %}text-[#10B981]{% else %}text-gray-400{% endif %}">
                         {% if plan.has_custom_domain %}Included{% else %}Not Included{% endif %}

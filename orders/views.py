@@ -445,7 +445,7 @@ def submit_feedback(request):
         user = request.user
 
         # ===== Real-time Email to Support Team =====
-        email_subject = f"[Meditrack Support] {subject} — from {user.username}"
+        email_subject = f"[DawaiSetu Support] {subject} — from {user.username}"
         email_body = (
             f"New support request received:\n\n"
             f"From: {user.username}\n"
@@ -461,7 +461,7 @@ def submit_feedback(request):
                 subject=email_subject,
                 message=email_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=['meditracksupportcontact@gmail.com'],
+                recipient_list=['DawaiSetusupportcontact@gmail.com'],
                 fail_silently=False,
             )
         except Exception as e:
@@ -532,7 +532,7 @@ def export_orders_excel(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    filename = f"meditrack_orders_{timezone.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    filename = f"DawaiSetu_orders_{timezone.now().strftime('%Y%m%d_%H%M')}.xlsx"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     df.to_excel(response, index=False, engine='openpyxl')

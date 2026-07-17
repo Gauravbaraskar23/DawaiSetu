@@ -9,7 +9,7 @@ class SubdomainMaskingMiddleware:
         host = request.get_host().lower()
 
         # Main domain ko ignore kre
-        standard_hosts = ['127.0.0.1:8000', 'localhost:8000', 'meditrack.com', 'www.meditrack.com']
+        standard_hosts = ['127.0.0.1:8000', 'localhost:8000', 'DawaiSetu.com', 'www.DawaiSetu.com']
 
         if host not in standard_hosts:
             

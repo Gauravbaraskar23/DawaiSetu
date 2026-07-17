@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Checkout | Meditrack{% endblock %}
+{% block title %}Checkout | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
@@ -36,7 +36,7 @@
                     data-currency="INR"
                     data-order_id="{{ razorpay_order_id }}"
                     data-buttontext="Pay Now Securely"
-                    data-name="Meditrack Platform"
+                    data-name="DawaiSetu Platform"
                     data-description="{{ plan.name }} Activation"
                     {% comment %} data-image="https://cdn-icons-png.flaticon.com/512/3063/3063206.png" {% endcomment %}
                     data-image="{% static 'images/favicon.svg' %}"
@@ -79,7 +79,7 @@
 {% endblock %}
 
 {% comment %} {% extends 'base.html' %}
-{% block title %}Checkout | Meditrack{% endblock %}
+{% block title %}Checkout | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -102,7 +102,7 @@
                     data-currency="INR"
                     data-order_id="{{ razorpay_order_id }}"
                     data-buttontext="Pay Now with Razorpay"
-                    data-name="Meditrack Subscriptions"
+                    data-name="DawaiSetu Subscriptions"
                     data-description="{{ plan.name }} Activation"
                     data-image="https://cdn-icons-png.flaticon.com/512/3063/3063206.png"
                     data-prefill.name="{{ request.user.username }}"

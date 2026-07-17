@@ -91,7 +91,7 @@ class StoreProfile(models.Model):
     is_verified = models.BooleanField(default=False, help_text="Admin will check this to give the Blue Tick")
     
     # Custom Domain/Subdomain
-    custom_subdomain = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="e.g., 'vermapharmacy' for vermapharmacy.meditrack.com")
+    custom_subdomain = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="e.g., 'vermapharmacy' for vermapharmacy.DawaiSetu.com")
     
     def __str__(self):
         return f"Store Profile: {self.user.agency_name}"

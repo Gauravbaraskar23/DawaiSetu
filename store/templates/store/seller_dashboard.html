@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Seller Dashboard | Meditrack{% endblock %}
+{% block title %}Seller Dashboard | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="py-6 md:py-8">
@@ -90,7 +90,7 @@
                     <input type="hidden" name="set_subdomain" value="1">
                     <div class="flex-1 relative flex items-center">
                         <input type="text" name="subdomain_name" value="{{ store_profile.custom_subdomain|default:'' }}" placeholder="e.g., vermapharmacy" required class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none text-right font-bold text-[#1E3A8A] bg-white">
-                        <span class="ml-2 font-bold text-blue-800">.meditrack.com</span>
+                        <span class="ml-2 font-bold text-blue-800">.dawaisetu.com</span>
                     </div>
                     <button type="submit" class="bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
                         Save Domain
@@ -124,7 +124,7 @@
                 
             <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 rounded-lg flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-yellow-800">Want professional link (yourname.meditrack.com)?</span>
+                    <span class="text-sm font-bold text-yellow-800">Want professional link (yourname.DawaiSetu.com)?</span>
                 </div>
                 <a href="{% url 'pricing' %}" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-3 py-1.5 rounded transition">Upgrade to Pro</a>
             </div>
@@ -505,7 +505,7 @@
 
 {% comment %} {% extends 'base.html' %}
 
-{% block title %}Seller Dashboard | Meditrack{% endblock %}
+{% block title %}Seller Dashboard | DawaiSetu{% endblock %}
 
 {% block content %}
 <div class="py-8">
