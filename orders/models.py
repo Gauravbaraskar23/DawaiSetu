@@ -37,6 +37,12 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
+    # Refill Reminder Feature
+    refill_after_days = models.PositiveIntegerField(default=0, blank=True)
+    refill_reminder_date = models.DateField(null=True, blank=True)
+    refill_reminder_sent = models.BooleanField(default=False)
+    
+    
     def __str__(self):
         return f"{self.quantity}x {self.medicine.name}"
     

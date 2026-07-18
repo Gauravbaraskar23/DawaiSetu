@@ -19,7 +19,6 @@
         </div>
     </div>
 
-    {% comment %} <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"> {% endcomment %}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
     <!-- Desktop -->
@@ -39,10 +38,21 @@
                     <td class="px-6 py-4 font-bold text-gray-900">#{{ order.id }}</td>
                     <td class="px-6 py-4">
                         {% for item in order.items.all %}
-                            <div class="mb-1">
+                            <div class="mb-1 flex items-center justify-between gap-2">
+                                <div>
+                                    <div class="font-bold text-gray-700">{{ item.medicine.name }}</div>
+                                    <div class="text-xs text-gray-500">Qty: {{ item.quantity }} | ₹{{ item.total_price }}</div>
+                                </div>
+                                {% if not user.is_store_staff and order.status == 'Completed' %}
+                                <button type="button" onclick="openReviewModal({{ item.medicine.id }}, '{{ item.medicine.name|escapejs }}')" class="text-xs font-bold text-yellow-600 hover:text-yellow-700 whitespace-nowrap">
+                                    ★ Rate
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% comment %} <div class="mb-1">
                                 <div class="font-bold text-gray-700">{{ item.medicine.name }}</div>
                                 <div class="text-xs text-gray-500">Qty: {{ item.quantity }} | ₹{{ item.total_price }}</div>
-                            </div>
+                            </div> {% endcomment %}
                         {% endfor %}
                         <div class="text-sm font-extrabold text-[#10B981] mt-2">Grand Total: ₹{{ order.get_total_price }}</div>
                     </td>
@@ -54,6 +64,9 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right flex items-center justify-end gap-4 h-full">
+                        {% if not user.is_store_staff and order.status == 'Completed' %}
+                        <a href="{% url 'reorder_order' order.id %}" class="text-[#10B981] text-sm font-bold hover:underline">Reorder</a>
+                        {% endif %}
                         <a href="{% url 'order_detail' order.id %}" class="text-[#1E3A8A] text-sm font-bold hover:underline">View</a>
                         <a href="{% url 'delete_history_single' order.id %}" onclick="return confirm('Delete this record?')" class="text-red-400 hover:text-red-600 transition" title="Delete Record">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -107,30 +120,42 @@
             <div class="space-y-3">
 
                 {% for item in order.items.all %}
-
+                <div class="border rounded-lg p-3 bg-gray-50 flex items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-bold text-gray-800">
+                            {{ item.medicine.name }}
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Qty :
+                            <span class="font-semibold">
+                                {{ item.quantity }}
+                            </span>
+                            |
+                            ₹{{ item.total_price }}
+                        </p>
+                    </div>
+                    {% if not user.is_store_staff and order.status == 'Completed' %}
+                    <button type="button" onclick="openReviewModal({{ item.medicine.id }}, '{{ item.medicine.name|escapejs }}')" class="text-xs font-bold text-yellow-600 hover:text-yellow-700 whitespace-nowrap flex-shrink-0">
+                        ★ Rate
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% comment %} {% for item in order.items.all %}
                 <div class="border rounded-lg p-3 bg-gray-50">
-
                     <h3 class="font-bold text-gray-800">
                         {{ item.medicine.name }}
                     </h3>
-
                     <p class="text-sm text-gray-500 mt-1">
-
                         Qty :
                         <span class="font-semibold">
                             {{ item.quantity }}
                         </span>
-
                         |
-
                         ₹{{ item.total_price }}
-
                     </p>
-
                 </div>
-
-                {% endfor %}
-
+                {% endfor %} {% endcomment %}
             </div>
 
             <div class="mt-4 flex justify-between items-center">
@@ -151,12 +176,22 @@
 
             <div class="mt-5 flex gap-3">
 
+                {% if not user.is_store_staff and order.status == 'Completed' %}
+                <a href="{% url 'reorder_order' order.id %}"
+                class="flex-1 text-center bg-[#10B981] text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition">
+                    Reorder
+                </a>
+                {% endif %}
                 <a href="{% url 'order_detail' order.id %}"
+                class="flex-1 text-center bg-[#1E3A8A] text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
+                    View Details
+                </a>
+                {% comment %} <a href="{% url 'order_detail' order.id %}"
                 class="flex-1 text-center bg-[#1E3A8A] text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
 
                     View Details
 
-                </a>
+                </a> {% endcomment %}
 
                 <a href="{% url 'delete_history_single' order.id %}"
                 onclick="return confirm('Delete this record?')"
@@ -204,4 +239,65 @@
         </div>
     </div>
 </div>
+
+<!-- Review Modal -->
+<div id="review-modal" class="hidden fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-extrabold text-gray-900">Rate & Review</h3>
+            <button type="button" onclick="closeReviewModal()" class="text-gray-400 hover:text-red-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">How was <strong id="review-medicine-name" class="text-gray-900"></strong>?</p>
+
+        <form id="review-form" method="POST" action="">
+            {% csrf_token %}
+            <div class="flex justify-center gap-2 mb-5" id="star-rating">
+                {% for i in "12345" %}
+                <button type="button" class="star-btn text-3xl text-gray-300 hover:text-yellow-400 transition" data-value="{{ i }}">★</button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="rating-input" value="">
+
+            <textarea name="comment" rows="3" placeholder="Share your experience (optional)..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent outline-none resize-none mb-4"></textarea>
+
+            <button type="submit" class="w-full bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold py-3 rounded-lg transition">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReviewModal(medicineId, medicineName) {
+        document.getElementById('review-medicine-name').innerText = medicineName;
+        document.getElementById('review-form').action = `/orders/review/${medicineId}/`;
+        document.getElementById('rating-input').value = '';
+        document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('text-yellow-400'));
+        document.querySelectorAll('.star-btn').forEach(btn => btn.classList.add('text-gray-300'));
+        document.getElementById('review-modal').classList.remove('hidden');
+    }
+
+    function closeReviewModal() {
+        document.getElementById('review-modal').classList.add('hidden');
+    }
+
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const value = parseInt(this.dataset.value);
+            document.getElementById('rating-input').value = value;
+            document.querySelectorAll('.star-btn').forEach((star, index) => {
+                if (index < value) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock %}

@@ -378,6 +378,19 @@
                         <span class="text-gray-500 font-bold uppercase tracking-wide text-sm">Grand Total</span>
                         <span class="text-[#10B981] text-2xl md:text-3xl font-black" id="grand-cart-total">₹{{ cart_total }}</span>
                     </div>
+
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Set a Refill Reminder (optional)</label>
+                        <select name="refill_days" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent bg-white shadow-sm outline-none">
+                            <option value="0">No reminder</option>
+                            <option value="7">Remind me in 7 days</option>
+                            <option value="15">Remind me in 15 days</option>
+                            <option value="30">Remind me in 30 days</option>
+                            <option value="60">Remind me in 60 days</option>
+                            <option value="90">Remind me in 90 days</option>
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                         <div>
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Delivery Address</label>

@@ -830,6 +830,13 @@ def medicine_detail(request, slug):
     
     # 1. SELLER / AGENCY FILTER LOGIC
     selected_seller_id = request.GET.get('seller_id', '')
+    
+    # Average Rating Calculation
+    from django.db.models import Avg
+    avg_rating = medicine.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    # ====================================
+
+
     if selected_seller_id:
         medicines = medicines.filter(seller_id=selected_seller_id)
 
@@ -837,7 +844,7 @@ def medicine_detail(request, slug):
         'medicine': medicine,
         # 'sellers': User.objects.filter(is_store_staff=True), # Saare sellers bhej rahe hain
         'selected_seller_id': selected_seller_id,
-        
+        'avg_rating': avg_rating,
     }
     
     return render(request, 'store/medicine_detail.html', context)

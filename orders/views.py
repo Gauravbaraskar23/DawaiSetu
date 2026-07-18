@@ -7,12 +7,13 @@ from notifications.models import Notification
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-from store.models import Medicine
+from store.models import Medicine, Review
 from .models import Order, OrderItem, ChatMessage, Cart, CartItem
 from django.contrib import messages
 from accounts.models import User
 from django.http import JsonResponse
 from django.utils import timezone
+from datetime import timedelta
 from subscriptions.models import SubscriptionPlan
 
 # 1. Place an Order
@@ -24,6 +25,7 @@ def place_order(request, slug):
         quantity = int(request.POST.get('quantity', 1))
         address = request.POST.get('address')
         phone = request.POST.get('phone')
+        refill_days = int(request.POST.get('refill_days', 0) or 0)
 
         # Calculate price
         price_per_item = medicine.discounted_price if medicine.discounted_price else medicine.actual_price
@@ -38,13 +40,21 @@ def place_order(request, slug):
         )
         
         # Attach the specific Medicine as an OrderItem
-        OrderItem.objects.create(
+        order_item = OrderItem.objects.create(
             order=order,
             medicine=medicine,
             quantity=quantity,
             total_price=total
             
         )
+        
+        # Refill reminder
+        if refill_days > 0:
+            reminder_offset = max(refill_days - 3, 1)
+            order_item.refill_after_days = refill_days
+            order_item.refill_reminder_date = (timezone.now() + timedelta(days=reminder_offset)).date()
+            order_item.save()
+        
         
         # Reduce stock
         medicine.stock_available -= quantity
@@ -233,18 +243,7 @@ def profile_view(request):
         has_custom_domain = False
         current_plan_name = None
         
-        # if hasattr(user, 'subscription') and user.subscription.is_valid():
-        # if hasattr(seller, 'subscription') and seller.subscription.is_valid():
-        #     allow_custom_link = seller.subscription.plan.allow_custom_link
-        #     has_analytics = seller.subscription.plan.has_analytics_dashboard
-        #     has_custom_domain = seller.subscription.plan.has_custom_domain
-        #     current_plan_name = seller.subscription.plan.name
-            
-        # context['allow_custom_link'] = allow_custom_link
-        # context['has_analytics'] = has_analytics
-        # context['has_custom_domain'] = has_custom_domain
-        # context['current_plan_name'] = current_plan_name
-
+        
         context['allow_custom_link'] = features['allow_custom_link']
         context['has_analytics'] = features['has_analytics_dashboard']
         context['has_custom_domain'] = features['has_custom_domain']
@@ -322,6 +321,8 @@ def cart_checkout(request):
         
         address = request.POST.get('address', 'Indore, Madhya Pradesh')
         phone = request.POST.get('phone', request.user.phone_number or 'Not Provided')
+        refill_days = int(request.POST.get('refill_days', 0) or 0)
+        
         
         # Advanced Marketplace Logic: Group items by seller because each seller gets their order separately
         from collections import defaultdict
@@ -342,12 +343,19 @@ def cart_checkout(request):
             )
             
             for item in items:
-                OrderItem.objects.create(
+                order_item = OrderItem.objects.create(
                     order=order,
                     medicine=item.medicine,
                     quantity=item.quantity,
                     total_price=item.get_item_total()
                 )
+                
+                if refill_days > 0:
+                    reminder_offset = max(refill_days - 3, 1)
+                    order_item.refill_after_days = refill_days
+                    order_item.refill_reminder_date = (timezone.now() + timedelta(days=reminder_offset)).date()
+                    order_item.save()
+                
                 
                 Notification.objects.create(
                     recipient=order_seller,
@@ -537,3 +545,78 @@ def export_orders_excel(request):
 
     df.to_excel(response, index=False, engine='openpyxl')
     return response
+
+
+@login_required(login_url='login')
+def reorder(request, order_id):
+    order = get_object_or_404(Order, id=order_id, customer=request.user)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    added_items = []
+    skipped_items = []
+
+    for item in order.items.all():
+        medicine = item.medicine
+        if not medicine.is_available or medicine.stock_available <= 0:
+            skipped_items.append(medicine.name)
+            continue
+        
+        cart_item, item_created = CartItem.objects.get_or_create(cart=cart, medicine=medicine)
+        desired_qty = item.quantity if item_created else cart_item.quantity + item.quantity
+        cart_item.quantity = item.quantity = min(desired_qty, medicine.stock_available)
+        cart_item.save()
+        added_items.append(medicine.name)
+        
+    if added_items:
+        messages.success(request, f"{len(added_items)} item(s) added to your cart from this order.")
+        
+    if skipped_items:
+        messages.success(request, f"Could not re-add (currently out of stock): {', '.join(skipped_items)}")
+
+    return redirect('profile_view')
+
+
+
+@login_required(login_url='login')
+def submit_review(request, medicine_id):
+    if request.method != 'POST':
+        return redirect('profile_view') 
+    
+    medicine = get_object_or_404(Medicine, id=medicine_id)
+    rating = request.POST.get('rating')
+    comment = request.POST.get('comment', '').strip()
+    
+    # Verify the customer actually purchased and received this medicine
+    purchased_item = OrderItem.objects.filter(
+        order__customer=request.user,
+        order__status = 'Completed',
+        medicine=medicine
+    ).first()
+    
+    if not purchased_item:
+        messages.error(request, "You can only review medicines from completed orders.")
+        return redirect('order_history')
+    
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except (TypeError, ValueError):
+        messages.error(request, "Please select a valid rating (1-5 stars).")
+        return redirect('order_history')
+    
+    
+    Review.objects.update_or_create(
+        medicine=medicine,
+        customer=request.user,
+        defaults={
+            'order_item': purchased_item,
+            'rating': rating,
+            'comment': comment,
+        }
+    )
+    
+    messages.success(request, f"Thank you! Your review for {medicine.name} has been submitted.")
+    return redirect('order_history')
+
+

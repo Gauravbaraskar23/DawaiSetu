@@ -80,4 +80,19 @@ class StoreVisit(models.Model):
     
     def __str__(self):
         return f"Visit to {self.seller.agency_name} on {self.self.visited_at.date()}"
-    
+
+
+class Review(models.Model):
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, related_name='reviews')
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='medicine_reviews')
+    order_item = models.ForeignKey('orders.OrderItem', on_delete=models.SET_NULL, null=True, blank=True)
+    rating = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('medicine', 'customer')
+        ordering = ['created_at']
+        
+    def __str__(self):
+        return f"{self.customer.username} rated {self.medicine.name} - {self.rating}/5"
