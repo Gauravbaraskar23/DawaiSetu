@@ -177,7 +177,7 @@
 
 
 
-    <div class="mb-8">
+    <div class="mb-8" id="store-overview-slot">
         <h3 class="text-lg font-extrabold text-gray-900 mb-4">Store Overview</h3>
         
         {% if has_analytics %}
@@ -280,6 +280,23 @@
         <p class="text-sm font-semibold text-gray-600">
             Total: <span class="text-[#1E3A8A] font-extrabold">{{ medicines|length }}</span> medicines
         </p>
+    </div>
+
+    <div id="bulk-restock-slot">
+        {% if status_filter == 'hidden' and medicines %}
+        <div id="bulk-restock-banner" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div class="flex-1">
+                <p class="text-sm font-bold text-yellow-800">Bulk Restock — Out of Stock / Hidden Medicines</p>
+                <p class="text-xs text-yellow-700 mt-0.5">Set a stock value below and apply it to all <span id="bulk-restock-count">{{ medicines|length }}</span> currently hidden/out-of-stock medicines at once.</p>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+                <input type="number" id="bulk-stock-value" min="0" required placeholder="e.g. 50" class="w-28 px-3 py-2 border border-yellow-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none">
+                <button type="button" id="bulk-restock-btn" onclick="applyBulkRestock()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap">
+                    Apply to All
+                </button>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <div id="inventory-results-container" class="transition-opacity duration-300">
@@ -391,6 +408,148 @@
 </div>
 
 <script>
+    function fetchResults() {
+        const form = document.getElementById('search-filter-form');
+        const searchInput = form.querySelector('input[name="q"]');
+        const statusSelect = form.querySelector('select[name="status"]');
+        const resultsContainer = document.getElementById('inventory-results-container');
+
+        resultsContainer.style.opacity = '0.4';
+        const searchParams = new URLSearchParams();
+        if (searchInput.value.trim() !== '') searchParams.set('q', searchInput.value.trim());
+        if (statusSelect.value !== '') searchParams.set('status', statusSelect.value);
+        const url = `${window.location.pathname}?${searchParams.toString()}`;
+
+        return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.text())
+            .then(html => {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                const newContainer = doc.getElementById('inventory-results-container');
+                if (newContainer) resultsContainer.innerHTML = newContainer.innerHTML;
+
+                // Sync the bulk-restock banner and total count too
+             //   const newBanner = doc.getElementById('bulk-restock-banner');
+              //  const currentBanner = document.getElementById('bulk-restock-banner');
+             //   if (newBanner && currentBanner) {
+             //       currentBanner.outerHTML = newBanner.outerHTML;
+             //   } else if (currentBanner) {
+              //      currentBanner.remove();
+              //  }
+                // Sync the bulk-restock slot (always exists in DOM, so innerHTML swap always works)
+                const newSlot = doc.getElementById('bulk-restock-slot');
+                const currentSlot = document.getElementById('bulk-restock-slot');
+                if (newSlot && currentSlot) currentSlot.innerHTML = newSlot.innerHTML;
+                
+
+                // Sync the Store Overview stats (Active Listings, Inventory Value, Out of Stock count, Low Stock alerts)
+                const newOverview = doc.getElementById('store-overview-slot');
+                const currentOverview = document.getElementById('store-overview-slot');
+                if (newOverview && currentOverview) currentOverview.innerHTML = newOverview.innerHTML;
+              
+              
+                const newTotalBar = doc.querySelector('.flex.items-center.justify-between.mb-3.px-1');
+                const currentTotalBar = document.querySelector('.flex.items-center.justify-between.mb-3.px-1');
+                if (newTotalBar && currentTotalBar) currentTotalBar.innerHTML = newTotalBar.innerHTML;
+
+                resultsContainer.style.opacity = '1';
+                window.history.pushState({}, '', url);
+            })
+            .catch(() => { resultsContainer.style.opacity = '1'; });
+    }
+
+    function applyBulkRestock() {
+        const input = document.getElementById('bulk-stock-value');
+        const btn = document.getElementById('bulk-restock-btn');
+        const value = input.value.trim();
+
+        if (value === '' || parseInt(value) < 0) {
+            if (window.showToast) showToast('Please enter a valid stock quantity.', 'error');
+            return;
+        }
+
+        if (!confirm(`This will set stock to ${value} for all currently listed medicines. Continue?`)) return;
+
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Updating...';
+
+        const formData = new FormData();
+        formData.append('bulk_restock', '1');
+        formData.append('bulk_stock_value', value);
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+
+            if (data.status === 'success') {
+                if (window.showToast) showToast(data.message, 'success');
+                fetchResults();
+            } else {
+                if (window.showToast) showToast(data.message || 'Something went wrong.', 'error');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            if (window.showToast) showToast('Network error. Please try again.', 'error');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('search-filter-form');
+        const searchInput = form.querySelector('input[name="q"]');
+        const statusSelect = form.querySelector('select[name="status"]');
+
+        let timeout = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(fetchResults, 400);
+        });
+        statusSelect.addEventListener('change', fetchResults);
+        form.addEventListener('submit', e => { e.preventDefault(); fetchResults(); });
+    });
+
+    function copyStoreLink() {
+        var copyText = document.getElementById("store-link");
+        var text = copyText.value;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                window.showToast('Link copied!', 'success');
+            }).catch(function () {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+    function fallbackCopy(text) {
+        var temp = document.createElement("textarea");
+        temp.value = text;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        try {
+            document.execCommand('copy');
+            window.showToast('Link copied!', 'success');
+        } catch (e) {
+            window.showToast('Copy failed. Please copy manually.', 'error');
+        }
+        document.body.removeChild(temp);
+    }
+</script>
+{% comment %} <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('search-filter-form');
         const searchInput = form.querySelector('input[name="q"]');
@@ -455,7 +614,7 @@
         }
         document.body.removeChild(temp);
     }
-</script>
+</script> {% endcomment %}
 
 
 <div id="stockUpdateModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">

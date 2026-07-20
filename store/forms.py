@@ -12,7 +12,7 @@ class MedicineForm(forms.ModelForm):
     )
     class Meta:
         model = Medicine
-        exclude = ['slug', 'seller', 'composition']
+        exclude = ['slug', 'seller', 'composition', 'is_available']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             

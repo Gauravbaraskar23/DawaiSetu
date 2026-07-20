@@ -51,7 +51,7 @@ class Medicine(models.Model):
     actual_price = models.DecimalField(max_digits=10, decimal_places=2)
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
-    description = models.TextField()
+    description = models.TextField(blank=True)
     stock_available = models.IntegerField(default=0)
     is_available = models.BooleanField(default=True)
     
@@ -60,6 +60,9 @@ class Medicine(models.Model):
         # Automatically generate the slug from the name before saving
         if not self.slug:
             self.slug = slugify(self.name)
+            
+        # Availability ab hamesha stock ke hisaab se automatically decide hoga
+        self.is_available = self.stock_available > 0
         super().save(*args, **kwargs)
         
     def __str__(self):

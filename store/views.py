@@ -17,7 +17,7 @@ from subscriptions.models import StoreProfile
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth, TruncYear 
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from orders.models import Order, OrderItem
 
 User = get_user_model()
@@ -193,6 +193,32 @@ def seller_dashboard(request):
             messages.error(request, "Invalid stock value entered.")
             
         return redirect('seller_dashboard')
+    
+    # Bulk Restock Logic - sab hidden/Out of stock medicines ka stock ek saath update
+    if request.method == 'POST' and 'bulk_restock' in request.POST:
+        try:
+            new_stock_value = int(request.POST.get('bulk_stock_value', 0))
+            if new_stock_value < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status':'error', 'message': 'Please enter a valid stock quantity (0 or more).'})
+            messages.error(request, "Please enter a valid stock quantity (0 or more).")
+            return redirect(f"{request.path}?status=hidden")
+        
+        updated_count = Medicine.objects.filter(
+            Q(seller=seller) & (Q(is_available=False) | Q(stock_available__lte=0))
+            
+        ).update(stock_available=new_stock_value, is_available=(new_stock_value > 0))
+        
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Updated stock for {updated_count} medicine(s) to {new_stock_value} units.',
+                'updated_count': updated_count,
+            })
+        messages.success(request, f"Updated stock for {updated_count} medicine(s) to {new_stock_value} units.")
+        return redirect(f"{request.path}?status=hidden")
     
 
     # CUSTOM SUBDOMAIN Logic 
@@ -507,7 +533,10 @@ def bulk_upload_medicines(request):
                 'mrp': 'actual_price',
                 'price': 'actual_price',
                 'actual price': 'actual_price',
-                'discounted price' : 'discounted_price'
+                'discounted price' : 'discounted_price',
+                'sub_cat': 'subcategory',
+                'cat': 'category', 
+                'packing': 'packaging',
             }
             df = df.rename(columns=alias_map)
             
@@ -543,8 +572,8 @@ def bulk_upload_medicines(request):
             success_count = 0
             
             # Default Category set karein
-            default_cat, _ = Category.objects.get_or_create(name="Other")
-            default_sub, _ = SubCategory.objects.get_or_create(name="General", category=default_cat)
+            # default_cat, _ = Category.objects.get_or_create(name="Other")
+            # default_sub, _ = SubCategory.objects.get_or_create(name="General", category=default_cat)
             
             for index, row in df.iterrows():
                 if success_count >= remaining_slots:
@@ -560,12 +589,39 @@ def bulk_upload_medicines(request):
                     man_name = str(row['manufacturer']).strip()
                     manufacturer, _ = Manufacturer.objects.get_or_create(name=man_name)
                     
-                    # Molecule
+                    # Molecule or agar excel me composition h to molecule me composition add ho jaayega
                     molecule = None
+                    mol_source = None
                     if 'molecule' in df.columns and not pd.isna(row['molecule']):
-                        mol_name = str(row['molecule']).strip()
-                        molecule, _ = Molecule.objects.get_or_create(name=mol_name)
+                        mol_source = str(row['molecule']).strip()
+                        # mol_name = str(row['molecule']).strip()
+                        # molecule, _ = Molecule.objects.get_or_create(name=mol_name)
+                    elif 'composition' in df.columns and not pd.isna(row['composition']):
+                        mol_source = str(row['composition']).strip()
+                        
+                    if mol_source:
+                        molecule, _ = Molecule.objects.get_or_create(name=mol_source)
+                    # Category & Subcategory 
+                    category_name = None
+                    if 'category' in df.columns and not pd.isna(row['category']):
+                        category_name = str(row['category']).strip()
                     
+                    if category_name:
+                        category_obj, _ = Category.objects.get_or_create(name=category_name)
+                    else:
+                        category_obj, _ = Category.objects.get_or_create(name='Other')
+                    
+                    subcategory_name = None
+                    if 'subcategory' in df.columns and not pd.isna(row['subcategory']):
+                        subcategory_name = str(row['subcategory']).strip()
+                        
+                    if subcategory_name:
+                        subcat_obj, _ = SubCategory.objects.get_or_create(name=subcategory_name, category=category_obj)
+                    else:
+                        subcat_obj, _ = SubCategory.objects.get_or_create(name="General", category=category_obj)
+                    # ===================================
+
+
                     # Prices (Fallback to 0)
                     try: actual_price = float(row['actual_price'])
                     except: actual_price = 0.0
@@ -578,8 +634,25 @@ def bulk_upload_medicines(request):
                     except: stock = 0
                     
                     # Composition & Description
-                    composition = str(row['composition']).strip() if 'composition' in df.columns and not pd.isna(row['composition']) else "Not Specified"
-                    description = str(row['description']).strip() if 'description' in df.columns and not pd.isna(row['description']) else f"{row['name']} manufactured by {man_name}."
+                    # composition = str(row['composition']).strip() if 'composition' in df.columns and not pd.isna(row['composition']) else "Not Specified"
+                    # description = str(row['description']).strip() if 'description' in df.columns and not pd.isna(row['description']) else f"{row['name']} manufactured by {man_name}."
+                    
+                    # Composition — molecule se le lo agar khud composition column nahi hai
+                    if 'composition' in df.columns and not pd.isna(row['composition']):
+                        composition = str(row['composition']).strip()
+                    elif molecule:
+                        composition = molecule.name
+                    else:
+                        composition = "Not Specified"
+
+                    # Description — agar description nahi hai toh packaging ko fallback ki tarah use karo, warna default text
+                    if 'description' in df.columns and not pd.isna(row['description']):
+                        description = str(row['description']).strip()
+                    elif 'packaging' in df.columns and not pd.isna(row['packaging']):
+                        description = f"Packaging: {str(row['packaging']).strip()}"
+                    else:
+                        description = f"{row['name']} manufactured by {man_name}."
+                    
                     
                     # Create Slug
                     base_slug = slugify(str(row['name']))
@@ -591,7 +664,7 @@ def bulk_upload_medicines(request):
                         # seller=request.user,
                         name=str(row['name']).strip(),
                         slug=slug,
-                        subcategory=default_sub,
+                        subcategory=subcat_obj,
                         manufacturer=manufacturer,
                         molecule=molecule,
                         composition=composition,
@@ -599,7 +672,7 @@ def bulk_upload_medicines(request):
                         discounted_price=discounted_price,
                         description=description,
                         stock_available=stock,
-                        is_available=(stock > 0)
+                        # is_available=(stock > 0)
                     )
                     success_count += 1
                     
