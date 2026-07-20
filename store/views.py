@@ -645,11 +645,20 @@ def bulk_upload_medicines(request):
                     else:
                         composition = "Not Specified"
 
-                    # Description — agar description nahi hai toh packaging ko fallback ki tarah use karo, warna default text
-                    if 'description' in df.columns and not pd.isna(row['description']):
+                    # Description — agar packaging bhi h toh usse phle jodo, phir description; warna sirf packaging, ya decriptioon or by default description
+                    
+                    
+                    has_description = 'description' in df.columns and not pd.isna(row['description'])
+                    has_packaging = 'packaging' in df.columns and not pd.isna(row['packaging'])
+                    
+                    if has_description and has_packaging:
+                        packaging_val = str(row['packaging']).strip() 
+                        description_val = str(row['description']).strip() 
+                        description = f"Packaging: {packaging_val}\n{description_val}"
+                    elif has_description:
                         description = str(row['description']).strip()
-                    elif 'packaging' in df.columns and not pd.isna(row['packaging']):
-                        description = f"Packaging: {str(row['packaging']).strip()}"
+                    elif has_packaging:
+                        description = f"Packaging: {str(row['packaging']).strip()}" 
                     else:
                         description = f"{row['name']} manufactured by {man_name}."
                     
