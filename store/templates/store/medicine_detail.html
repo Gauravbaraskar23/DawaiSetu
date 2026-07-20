@@ -24,12 +24,35 @@
                 {% if medicine.product_image %}
                     <img id="product-img" src="{{ medicine.product_image.url }}" alt="{{ medicine.name }}" class="max-w-full h-auto max-h-[400px] object-contain drop-shadow-md cursor-zoom-in" onclick="openLightbox()">
                 {% else %}
+                    <div class="text-gray-300 flex flex-col items-center w-full">
+                        <svg class="h-20 w-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span class="text-sm font-medium text-gray-400 mb-4">No Image Available</span>
+
+                        {% if request.user.is_authenticated and request.user.effective_seller == medicine.seller and request.user.can_manage_inventory %}
+                        <form method="POST" action="{% url 'upload_medicine_image' medicine.slug %}" enctype="multipart/form-data" class="w-full max-w-xs">
+                            {% csrf_token %}
+                            <label class="block w-full text-center bg-white border-2 border-dashed border-gray-300 hover:border-[#1E3A8A] rounded-xl py-3 px-4 cursor-pointer transition text-sm font-bold text-[#1E3A8A]">
+                                <span id="upload-file-label">Choose Image to Upload</span>
+                                <input type="file" name="product_image" accept="image/*" class="hidden" required onchange="document.getElementById('upload-file-label').innerText = this.files[0].name; document.getElementById('upload-submit-btn').classList.remove('hidden');">
+                            </label>
+                            <button id="upload-submit-btn" type="submit" class="hidden w-full mt-2 bg-[#10B981] hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                                Upload Image
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            {% comment %} <div class="p-6 md:p-12 bg-gray-50 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 min-h-[240px] md:min-h-[400px]">
+                {% if medicine.product_image %}
+                    <img id="product-img" src="{{ medicine.product_image.url }}" alt="{{ medicine.name }}" class="max-w-full h-auto max-h-[400px] object-contain drop-shadow-md cursor-zoom-in" onclick="openLightbox()">
+                {% else %}
                     <div class="text-gray-300 flex flex-col items-center">
                         <svg class="h-20 w-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span class="text-sm font-medium text-gray-400">No Image Available</span>
                     </div>
                 {% endif %}
-            </div>
+            </div> {% endcomment %}
 
             <!-- Lightbox Overlay -->
             <div id="lightbox" onclick="closeLightbox()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center;">
@@ -92,10 +115,14 @@
 
                 <!-- Medicine Info Table -->
                 <div class="space-y-0 mb-5 rounded-xl border border-gray-100 overflow-hidden">
+                    
+                    {% if medicine.subcategory.category %}
                     <div class="flex text-sm border-b border-gray-100 last:border-b-0">
-                        <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Composition</div>
-                        <div class="w-3/5 px-4 py-3 text-gray-900 font-medium text-sm">{{ medicine.composition }}</div>
+                        <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Category</div>
+                        <div class="w-3/5 px-4 py-3 text-gray-900 font-medium text-sm">{{ medicine.subcategory.category.name }}</div>
                     </div>
+                    {% endif %}
+
                     {% if medicine.molecule %}
                     <div class="flex text-sm border-b border-gray-100">
                         <div class="w-2/5 bg-gray-50 px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wide">Molecule</div>

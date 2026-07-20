@@ -301,6 +301,18 @@ def add_medicine(request):
         post_data = request.POST.copy()
         
         # Handle dynamic Manufacturer
+        
+        
+        cat_val = post_data.get('category')
+        category_obj = None
+        if cat_val:
+            if cat_val.isdigit():
+                category_obj = Category.objects.filter(id=cat_val).first()
+            else:
+                category_obj, _ = Category.objects.get_or_create(name=cat_val)
+                post_data['category'] = category_obj.id
+         
+        
         man_val = post_data.get('manufacturer')
         # If the value is text (not a numeric ID), it means they typed a new one
         if man_val and not man_val.isdigit(): 
@@ -316,19 +328,25 @@ def add_medicine(request):
         # 3. Handle dynamic Subcategory
         sub_val = post_data.get('subcategory')
         if sub_val and not sub_val.isdigit():
-            # Assign it to a generic "Other" category by default
-            default_cat, _ = Category.objects.get_or_create(name="Other")
+            # Use the selected/typed Category instead of always defaulting to "Other"
+            # default_cat, _ = Category.objects.get_or_create(name="Other")
+            default_cat = category_obj or Category.objects.get_or_create(name="Other")[0]
             new_sub, _ = SubCategory.objects.get_or_create(name=sub_val, category=default_cat)
             post_data['subcategory'] = new_sub.id
             
             
-        form = MedicineForm(request.POST, request.FILES)
+        form = MedicineForm(post_data, request.FILES)
+        # form = MedicineForm(request.POST, request.FILES)
+        
         if form.is_valid():
             medicine = form.save(commit=False)
             # Attach the seller
             medicine.seller = seller
             # medicine.seller = request.user
             
+            if not medicine.composition:
+                medicine.composition = medicine.molecule.name if medicine.molecule else "Not Specified"
+           
             # Generate a highly unique slug using the name + the seller's ID
             base_slug = slugify(medicine.name)
             medicine.slug = f"{base_slug}-{request.user.id}"
@@ -610,8 +628,46 @@ def edit_medicine(request, slug):
     # medicine = get_object_or_404(Medicine, slug=slug , seller=request.user)
     
     if request.method == 'POST':
-        form = MedicineForm(request.POST, request.FILES, instance=medicine)
+        post_data = request.POST.copy()
+        # Handle  DYnamic creation of new manufacturer, Molecule or Subcategory
+        
+        cat_val = post_data.get('category')
+        category_obj = None
+        if cat_val:
+            if cat_val.isdigit():
+                category_obj = Category.objects.filter(id=cat_val).first()
+            else:
+                category_obj, _ = Category.objects.get_or_create(name=cat_val)
+                post_data['category'] = category_obj.id
+                
+        
+        man_val = post_data.get('manufacturer')
+        if man_val and not man_val.isdigit():
+            new_man, _ = Manufacturer.objects.get_or_create(name=man_val)
+            post_data['manufacturer'] = new_man.id
+
+        mol_val = post_data.get('molecule')
+        if mol_val and not mol_val.isdigit():
+            new_mol, _ = Molecule.objects.get_or_create(name=mol_val)
+            post_data['molecule'] = new_mol.id
+
+        sub_val = post_data.get('subcategory')
+        if sub_val and not sub_val.isdigit():
+            default_cat = category_obj or Category.objects.get_or_create(name="Other")[0]
+            new_sub, _ = SubCategory.objects.get_or_create(name=sub_val, category=default_cat)
+            post_data['subcategory'] = new_sub.id
+        # ================================================================================
+
+        # form = MedicineForm(request.POST, request.FILES, instance=medicine)
+        form = MedicineForm(post_data, request.FILES, instance=medicine)
         if form.is_valid():
+            # composition ke liye sensible default (kyoki field ab form mein hai hi nahi)
+            medicine = form.save(commit=False)
+            medicine.seller = seller
+
+            if not medicine.composition:
+                medicine.composition = medicine.molecule.name if medicine.molecule else "Not Specified"
+
             form.save()
             messages.success(request, f"{medicine.name} updated successfully!")
             return redirect('seller_dashboard')
@@ -848,6 +904,25 @@ def medicine_detail(request, slug):
     }
     
     return render(request, 'store/medicine_detail.html', context)
+
+# Upload Medicine Image
+@login_required(login_url='login')
+def upload_medicine_image(request, slug):
+    medicine = get_object_or_404(Medicine, slug=slug)
+    effective_seller = request.user.effective_seller
+    
+    if effective_seller != medicine.seller or not request.user.can_manage_inventory:
+        messages.error(request, "You don't have permission to update this medicine's image.")
+        return redirect('medicine_detail', slug=slug)
+    
+    if request.method == 'POST' and request.FILES.get('product_image'):
+        medicine.product_image = request.FILES['product_image']
+        medicine.save()
+        messages.success(request, "Product image uploaded successully!")
+    else:
+        messages.error(request, "Please select a valid image file.")
+    
+    return redirect('medicine_detail', slug=slug)
 
     
 @user_passes_test(is_seller, login_url='login')
