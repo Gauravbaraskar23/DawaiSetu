@@ -81,6 +81,9 @@ def is_seller(user):
 
 @user_passes_test(is_seller, login_url='login')
 def seller_dashboard(request):
+    
+    print("FULL GET:", request.GET)
+    print("STATUS:", request.GET.get("status"))
     seller = request.user.effective_seller
     features = seller.effective_plan_features
     
@@ -282,6 +285,7 @@ def seller_dashboard(request):
 
         )
     # 2. Status filter logic
+    
     if status_filter == 'active':
         # Active wo hai jo available hai aur stock > 0 hai
         medicines = medicines.filter(is_available=True, stock_available__gt=0)
@@ -293,6 +297,8 @@ def seller_dashboard(request):
     elif status_filter == 'low_stock' and not has_stock_alerts:
         status_filter = ''  # Feature pywalled - siltently treat as "All Medicines"
 
+    print("Status:", status_filter)
+    print("Medicines after filter:", medicines.count())
         
         
     

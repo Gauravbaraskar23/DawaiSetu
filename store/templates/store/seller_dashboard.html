@@ -14,28 +14,27 @@
             <p class="text-sm text-gray-500 mt-1">Manage your store's medicines and stock levels.</p>
         </div>
 
-        <div class="flex gap-3 w-full md:w-auto">
-        {% comment %} <div class="grid grid-cols-2 gap-3 lg:flex lg:flex-wrap lg:w-auto"><div class="flex gap-3 w-full md:w-auto"> {% endcomment %}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full md:w-auto">
             {% if not is_staff_account %}
-                <a href="{% url 'manage_staff' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+                <a href="{% url 'manage_staff' %}" class="inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-xs font-bold shadow-sm transition gap-1.5">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1a4 4 0 100-8 4 4 0 000 8zm-9 9a4 4 0 013-3.87"></path></svg>
-                    Manage Staff
+                    <span class="truncate">Manage Staff</span>
                 </a>
             {% endif %}
-            
-            <a href="{% url 'store_analytics' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+
+            <a href="{% url 'store_analytics' %}" class="inline-flex items-center justify-center bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 px-3 py-2.5 rounded-lg text-xs font-bold shadow-sm transition gap-1.5">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analytics
+                <span class="truncate">Analytics</span>
             </a>
-            
-            <a href="{% url 'bulk_upload_medicines' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-[#10B981] text-[#10B981] hover:bg-green-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+
+            <a href="{% url 'bulk_upload_medicines' %}" class="inline-flex items-center justify-center bg-white border-2 border-[#10B981] text-[#10B981] hover:bg-green-50 px-3 py-2.5 rounded-lg text-xs font-bold shadow-sm transition gap-1.5">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                <span class="hidden sm:inline">Add Bulk Data (Excel)</span>
-                <span class="sm:hidden">Bulk Upload</span>
+                <span class="truncate">Bulk Upload(Excel)</span>
             </a>
-            <a href="{% url 'add_medicine' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-[#1E3A8A] hover:bg-blue-800 text-white px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
+
+            <a href="{% url 'add_medicine' %}" class="inline-flex items-center justify-center bg-[#1E3A8A] hover:bg-blue-800 text-white px-3 py-2.5 rounded-lg text-xs font-bold shadow-sm transition gap-1.5">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                Add Medicine
+                <span class="truncate">Add Medicine</span>
             </a>
         </div>
     </div>
@@ -85,12 +84,12 @@
 
         {% if has_custom_domain %}
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Your Custom Subdomain</label>
+                <label for="id_subdomain_name" class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Your Custom Subdomain</label>
                 <form method="POST" class="flex flex-col sm:flex-row gap-3">
                     {% csrf_token %}
                     <input type="hidden" name="set_subdomain" value="1">
                     <div class="flex-1 relative flex items-center">
-                        <input type="text" name="subdomain_name" value="{{ store_profile.custom_subdomain|default:'' }}" placeholder="e.g., vermapharmacy" required class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none text-right font-bold text-[#1E3A8A] bg-white">
+                        <input type="text" id="id_subdomain_name" name="subdomain_name" value="{{ store_profile.custom_subdomain|default:'' }}" placeholder="e.g., vermapharmacy" required class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none text-right font-bold text-[#1E3A8A] bg-white">
                         <span class="ml-2 font-bold text-blue-800">.dawaisetu.com</span>
                     </div>
                     <button type="submit" class="bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
@@ -159,12 +158,12 @@
                 {% csrf_token %}
                 <input type="hidden" name="verify_store" value="1">
                 <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">FSSAI License Number</label>
-                    <input type="text" name="fssai_number" placeholder="Enter License No." required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none transition">
+                    <label for="id_fssai_number" class="block text-xs font-bold text-gray-500 mb-1">FSSAI License Number</label>
+                    <input type="text" id="id_fssai_number" name="fssai_number" placeholder="Enter License No." required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none transition">
                 </div>
                 <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">Upload Document (PDF/Image)</label>
-                    <input type="file" name="fssai_document" accept=".pdf,image/*" required class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 bg-gray-50">
+                    <label for="id_fssai_document" class="block text-xs font-bold text-gray-500 mb-1">Upload Document (PDF/Image)</label>
+                    <input type="file" id="id_fssai_document" name="fssai_document" accept=".pdf,image/*" required class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 bg-gray-50">
                 </div>
                 <div class="w-full sm:w-auto mt-2 sm:mt-0">
                     <button type="submit" class="w-full sm:w-auto bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
@@ -248,7 +247,7 @@
                     <div class="flex items-center justify-between w-full">
                         <span class="text-xs font-black px-2.5 py-1 bg-red-100 text-red-700 rounded-md">{{ med.stock_available }} left</span>
                         <span class="text-[10px] text-yellow-600 font-bold uppercase tracking-wider flex items-center gap-1 group-hover:text-yellow-800">
-                            Update <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                         </span>
                     </div>
                 </button>
@@ -559,51 +558,7 @@
         });
     }
 
-    {% comment %} function applyBulkLowStockUpdate() {
-        const input = document.getElementById('bulk-low-stock-value');
-        const btn = document.getElementById('bulk-low-stock-btn');
-        const value = input.value.trim();
-
-        if (value === '' || parseInt(value) < 0) {
-            if (window.showToast) showToast('Please enter a valid stock quantity.', 'error');
-            return;
-        }
-
-        if (!confirm(`This will set stock to ${value} for all currently listed low-stock medicines. Continue?`)) return;
-
-        const originalText = btn.innerText;
-        btn.disabled = true;
-        btn.innerText = 'Updating...';
-
-        const formData = new FormData();
-        formData.append('bulk_low_stock_update', '1');
-        formData.append('bulk_low_stock_value', value);
-
-        fetch(window.location.pathname, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            btn.disabled = false;
-            btn.innerText = originalText;
-            if (data.status === 'success') {
-                if (window.showToast) showToast(data.message, 'success');
-                fetchResults();
-            } else {
-                if (window.showToast) showToast(data.message || 'Something went wrong.', 'error');
-            }
-        })
-        .catch(() => {
-            btn.disabled = false;
-            btn.innerText = originalText;
-            if (window.showToast) showToast('Network error. Please try again.', 'error');
-        });
-    } {% endcomment %}
+   
 
     function openBulkLowStockPrompt() {
         const value = prompt('Enter the new stock quantity to apply to ALL low-stock medicines:');
@@ -770,7 +725,7 @@
             <input type="hidden" name="medicine_id" id="modalMedId">
             
             <div class="mb-6">
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Stock Quantity</label>
+                <label for="modalMedStock" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Stock Quantity</label>
                 <div class="relative">
                     <input type="number" name="new_stock" id="modalMedStock" min="0" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg font-bold text-gray-900 focus:ring-0 focus:border-[#10B981] outline-none transition-colors" required>
                 </div>
@@ -798,219 +753,3 @@
 </script>
 {% endblock %}
 
-{% comment %} {% extends 'base.html' %}
-
-{% block title %}Seller Dashboard | DawaiSetu{% endblock %}
-
-{% block content %}
-<div class="py-8">
-
-    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        
-        <div>
-            <h1 class="text-3xl font-extrabold text-gray-900 capitalize tracking-tight">
-                {% if user.agency_name %}
-                    {{ user.agency_name }} 
-                {% else %}
-                    Inventory Dashboard
-                {% endif %}
-            </h1>
-            <p class="text-sm text-gray-500 mt-1">Manage your store's medicines and stock levels.</p>
-        </div>
-
-        <div class="flex gap-3 w-full md:w-auto">
-            <a href="{% url 'bulk_upload_medicines' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-[#10B981] text-[#10B981] hover:bg-green-50 px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                Add Bulk Data(Excel)
-            </a>
-            
-            <a href="{% url 'add_medicine' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                Add New Medicine
-            </a>
-        </div>
-        
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-        <form id="search-filter-form" method="GET" action="{% url 'seller_dashboard' %}" class="flex flex-col md:flex-row gap-4">
-            
-            <div class="relative flex-1">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                <input type="text" name="q" value="{{ query }}" autocomplete="off" placeholder="Search medicine by name or composition..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm outline-none transition">
-            </div>
-
-            <div class="w-full md:w-56">
-                <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:border-transparent shadow-sm text-sm bg-white outline-none cursor-pointer transition" >
-                    <option value="" {% if status_filter == '' %}selected{% endif %}>All Inventory</option>
-                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active (In Stock)</option>
-                    <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Hidden (Out of Stock)</option>
-                </select>
-            </div>
-
-            <div class="flex gap-2">
-                
-                {% if query or status_filter %}
-                <a href="{% url 'seller_dashboard' %}" class="flex items-center justify-center px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition" title="Clear Filters">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </a>
-                {% endif %}
-            </div>
-        </form>
-    </div>
-
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-            </div>
-            <div>
-                <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Specific Store Link</h3>
-                <p class="text-xs text-blue-700">Customers using this link will only see medicines from your agency.</p>
-            </div>
-        </div>
-        
-        <div class="flex w-full md:w-auto">
-            <input type="text" id="store-link" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}?seller_id={{ user.id }}&locked=true" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
-            <button onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
-                Copy Link
-            </button>
-        </div>
-    </div>
-
-    <div id="inventory-results-container" class="transition-opacity duration-300">
-        {% if not medicines %}
-            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center mb-6">
-                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h3 class="text-lg font-bold text-gray-900">No medicines found!</h3>
-                <p class="text-sm text-gray-600 mt-1">We couldn't find any items matching your current search or status filter.</p>
-                {% if query or status_filter %}
-                    <a href="{% url 'seller_dashboard' %}" class="inline-block mt-4 text-[#1E3A8A] font-bold hover:underline">Clear all filters</a>
-                {% endif %}
-            </div>
-        {% endif %}
-
-    
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Medicine Name</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for medicine in medicines %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-900">{{ medicine.name }}</div>
-                            <div class="text-xs text-gray-500">{{ medicine.manufacturer.name }}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="font-semibold {% if medicine.stock_available < 10 %}text-red-600{% else %}text-gray-900{% endif %}">
-                                {{ medicine.stock_available }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 font-medium text-gray-900">₹{{ medicine.actual_price }}</td>
-                        <td class="px-6 py-4">
-                            {% if medicine.is_available %}
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Active</span>
-                            {% else %}
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Hidden</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 text-right font-medium text-sm space-x-3">
-                            <a href="{% url 'edit_medicine' medicine.slug %}" class="text-blue-600 hover:text-blue-900">Edit</a>
-                            <a href="{% url 'delete_medicine' medicine.slug %}" class="text-red-600 hover:text-red-900">Delete</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">No medicines found. Click "Add New Medicine" to start!</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('search-filter-form');
-        const searchInput = form.querySelector('input[name="q"]');
-        const statusSelect = form.querySelector('select[name="status"]');
-        const resultsContainer = document.getElementById('inventory-results-container');
-
-        // Function jo background me data fetch karega
-        function fetchResults() {
-            // Halka sa fade out effect jab loading ho
-            resultsContainer.style.opacity = '0.4';
-
-            const formData = new FormData(form);
-            const searchParams = new URLSearchParams();
-            
-            // Query params set karna
-            if (searchInput.value.trim() !== '') searchParams.set('q', searchInput.value.trim());
-            if (statusSelect.value !== '') searchParams.set('status', statusSelect.value);
-
-            const url = `${window.location.pathname}?${searchParams.toString()}`;
-
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(response => response.text())
-                .then(html => {
-                    // Naye page ka HTML parse karna aur sirf table wala hissa nikalna
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContainer = doc.getElementById('inventory-results-container');
-
-                    if (newContainer) {
-                        resultsContainer.innerHTML = newContainer.innerHTML;
-                    }
-                    
-                    // Wapas normal dikhana
-                    resultsContainer.style.opacity = '1';
-                    
-                    // URL ko update karna taaki browser refresh par search gayab na ho
-                    window.history.pushState({}, '', url);
-                })
-                .catch(error => {
-                    console.error("Search fetch failed:", error);
-                    resultsContainer.style.opacity = '1';
-                });
-        }
-
-        // 1. TYPING PAR AUTO-SEARCH (Debounce logic: jab type karna band karega tabhi search hoga)
-        let timeout = null;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(fetchResults, 400); // 400 milliseconds ka wait
-        });
-
-        // 2. DROPDOWN CHANGE PAR AUTO-SEARCH
-        statusSelect.addEventListener('change', fetchResults);
-
-        // 3. ENTER DABANE PAR BHI BINA REFRESH KE SEARCH KARE
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            fetchResults();
-        });
-    });
-</script>
-
-<script>
-        function copyStoreLink() {
-            var copyText = document.getElementById("store-link");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); // For mobile devices
-            navigator.clipboard.writeText(copyText.value);
-            alert("Your store link has been copied!");
-        }
-    </script>
-{% endblock %} {% endcomment %}
