@@ -15,6 +15,7 @@
         </div>
 
         <div class="flex gap-3 w-full md:w-auto">
+        {% comment %} <div class="grid grid-cols-2 gap-3 lg:flex lg:flex-wrap lg:w-auto"><div class="flex gap-3 w-full md:w-auto"> {% endcomment %}
             {% if not is_staff_account %}
                 <a href="{% url 'manage_staff' %}" class="flex-1 md:flex-none inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition gap-2">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1a4 4 0 100-8 4 4 0 000 8zm-9 9a4 4 0 013-3.87"></path></svg>
@@ -227,7 +228,42 @@
             </div>
         {% endif %}
 
-        {% if has_stock_alerts and low_stock_medicines %}
+        {% if has_stock_alerts and low_stock_preview %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h4 class="font-bold text-yellow-800 flex items-center gap-2 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Action Required: Low Stock ({{ low_stock_total_count }})
+                </h4>
+                <button type="button" onclick="openBulkLowStockPrompt()" class="inline-flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition whitespace-nowrap self-start sm:self-auto">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Update All
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                {% for med in low_stock_preview %}
+                <button type="button" onclick="openStockModal('{{ med.id }}', '{{ med.name|escapejs }}', '{{ med.stock_available }}')" class="text-left bg-white p-4 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-100 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer">
+                    <span class="text-sm font-bold text-gray-800 truncate w-full mb-3 group-hover:text-yellow-700">{{ med.name }}</span>
+                    <div class="flex items-center justify-between w-full">
+                        <span class="text-xs font-black px-2.5 py-1 bg-red-100 text-red-700 rounded-md">{{ med.stock_available }} left</span>
+                        <span class="text-[10px] text-yellow-600 font-bold uppercase tracking-wider flex items-center gap-1 group-hover:text-yellow-800">
+                            Update <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </span>
+                    </div>
+                </button>
+                {% endfor %}
+
+                {% if show_low_stock_view_all %}
+                <a href="{% url 'seller_dashboard' %}?status=low_stock" class="flex flex-col items-center justify-center bg-white p-4 rounded-xl border-2 border-dashed border-yellow-300 hover:border-yellow-500 hover:bg-yellow-100 transition-all text-center gap-2">
+                    <span class="text-xl font-black text-yellow-600">+{{ low_stock_total_count|add:"-7" }}</span>
+                    <span class="text-xs font-bold text-yellow-700">View All Low Stock</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% comment %} {% if has_stock_alerts and low_stock_medicines %}
             <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
                 <h4 class="font-bold text-yellow-800 mb-4 flex items-center gap-2 text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -248,7 +284,7 @@
                     {% endfor %}
                 </div>
             </div>
-        {% endif %}
+        {% endif %} {% endcomment %}
         
     </div>
 
@@ -282,7 +318,7 @@
         </p>
     </div>
 
-    <div id="bulk-restock-slot">
+    {% comment %} <div id="bulk-restock-slot">
         {% if status_filter == 'hidden' and medicines %}
         <div id="bulk-restock-banner" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div class="flex-1">
@@ -297,7 +333,25 @@
             </div>
         </div>
         {% endif %}
+    </div> {% endcomment %}
+
+    <div id="bulk-restock-slot">
+    {% if status_filter == 'hidden' and medicines %}
+    <div id="bulk-restock-banner" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="flex-1">
+            <p class="text-sm font-bold text-yellow-800">Bulk Restock — Out of Stock / Hidden Medicines</p>
+            <p class="text-xs text-yellow-700 mt-0.5">Set a stock value below and apply it to all <span id="bulk-restock-count">{{ medicines|length }}</span> currently hidden/out-of-stock medicines at once.</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+            <input type="number" id="bulk-stock-value" min="0" required placeholder="e.g. 50" class="w-28 px-3 py-2 border border-yellow-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none">
+            <button type="button" id="bulk-restock-btn" onclick="applyBulkRestock()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap">
+                Apply to All
+            </button>
+        </div>
     </div>
+    
+    {% endif %}
+</div>
 
     <div id="inventory-results-container" class="transition-opacity duration-300">
         {% if not medicines %}
@@ -501,6 +555,88 @@
         .catch(() => {
             btn.disabled = false;
             btn.innerText = originalText;
+            if (window.showToast) showToast('Network error. Please try again.', 'error');
+        });
+    }
+
+    {% comment %} function applyBulkLowStockUpdate() {
+        const input = document.getElementById('bulk-low-stock-value');
+        const btn = document.getElementById('bulk-low-stock-btn');
+        const value = input.value.trim();
+
+        if (value === '' || parseInt(value) < 0) {
+            if (window.showToast) showToast('Please enter a valid stock quantity.', 'error');
+            return;
+        }
+
+        if (!confirm(`This will set stock to ${value} for all currently listed low-stock medicines. Continue?`)) return;
+
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Updating...';
+
+        const formData = new FormData();
+        formData.append('bulk_low_stock_update', '1');
+        formData.append('bulk_low_stock_value', value);
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            if (data.status === 'success') {
+                if (window.showToast) showToast(data.message, 'success');
+                fetchResults();
+            } else {
+                if (window.showToast) showToast(data.message || 'Something went wrong.', 'error');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            if (window.showToast) showToast('Network error. Please try again.', 'error');
+        });
+    } {% endcomment %}
+
+    function openBulkLowStockPrompt() {
+        const value = prompt('Enter the new stock quantity to apply to ALL low-stock medicines:');
+        if (value === null) return;
+        const parsed = parseInt(value);
+        if (isNaN(parsed) || parsed < 0) {
+            if (window.showToast) showToast('Please enter a valid stock quantity.', 'error');
+            return;
+        }
+        if (!confirm(`This will set stock to ${parsed} for ALL low-stock medicines. Continue?`)) return;
+
+        const formData = new FormData();
+        formData.append('bulk_low_stock_update', '1');
+        formData.append('bulk_low_stock_value', parsed);
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (window.showToast) showToast(data.message, 'success');
+                fetchResults();
+            } else {
+                if (window.showToast) showToast(data.message || 'Something went wrong.', 'error');
+            }
+        })
+        .catch(() => {
             if (window.showToast) showToast('Network error. Please try again.', 'error');
         });
     }

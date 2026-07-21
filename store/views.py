@@ -74,34 +74,6 @@ def landing_page(request):
     }
     return render(request, 'store/landing.html', context)
 
-# def landing_page(request):
-#     # 1. Jo log premium plan me hain unko list me pehle nikalo
-#     premium_sellers = list(User.objects.filter(
-#         is_store_staff=True,
-#         subscription__is_active=True,
-#         subscription__plan__is_premium_listing=True
-#     ).exclude(agency_name__isnull=True).exclude(agency_name="").order_by('-subscription__start_date')[:6])
-
-#     # 2. Baaki normal sellers ko nikalo
-#     normal_sellers = list(User.objects.filter(
-#         is_store_staff=True
-#     ).exclude(
-#         id__in=[s.id for s in premium_sellers]
-#     ).exclude(agency_name__isnull=True).exclude(agency_name=""))
-
-#     # 3. Dono list ko jod do, aur sirf shuru ke 6 sellers nikal lo
-#     top_6_sellers = (premium_sellers + normal_sellers)[:6]
-    
-#     #  Fetch all users who are sellers and have set an agency name
-#     # sellers = User.objects.filter(is_store_staff=True).exclude(agency_name__isnull=True).exclude(agency_name="")
-    
-#     # Session se locked seller ki id nikalo
-#     locked_seller_id = request.session.get('locked_seller_id')
-    
-#     return render(request, 'store/landing.html', {
-#         'sellers': top_6_sellers, 
-#         'locked_seller_id' : str(locked_seller_id) if locked_seller_id else None,
-#         })
 
 
 def is_seller(user):
@@ -168,7 +140,19 @@ def seller_dashboard(request):
         # Vo medicines jinka stock 10 se kam h (Aap threshold change kr skte hain)
         low_stock_medicines = all_seller_meds.filter(stock_available__lte=10, stock_available__gt=0).order_by('stock_available')
         out_of_stock_count = all_seller_meds.filter(stock_available=0).count()
+    
+    # Low Stock Preview (dashboard widget)
+    low_stock_total_count = low_stock_medicines.count() if has_stock_alerts else 0
+    if low_stock_total_count > 10:
+        low_stock_preview = low_stock_medicines[:7]
+        show_low_stock_view_all = True
+    else:
+        low_stock_preview = low_stock_medicines
+        show_low_stock_view_all = False
         
+    # =====================================
+      
+    
     if has_analytics:
         # Total Inventory Value (stock_available * price)
         # Assuming aaple Medicne models me 'stock' aur 'discounted_price' (ya actual price) h
@@ -220,7 +204,40 @@ def seller_dashboard(request):
         messages.success(request, f"Updated stock for {updated_count} medicine(s) to {new_stock_value} units.")
         return redirect(f"{request.path}?status=hidden")
     
-
+    # Bulk low stock Update - sab low-stock medicines ka stock ek saath badhao
+    if request.method == 'POST' and 'bulk_low_stock_update' in request.POST:
+        if not has_stock_alerts:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'This feature requires the Pro Analytics plan.'})
+            messages.error(request, "This feature requires the Pro Analytics plan.")
+            return redirect('seller_dashboard')
+        
+        try:
+            new_stock_value = int(request.POST.get('bulk_low_stock_value', 0))
+            if new_stock_value < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'Please enter a valid stock quantity (0 or more).'})
+            messages.error(request, "Please enter a valid stock quantity (0 or more).")
+            return redirect(f"{request.path}?status=low_stock")
+        
+        updated_count = Medicine.objects.filter(
+            seller=seller, stock_available__gt=0, stock_available__lte=10
+        ).update(stock_available=new_stock_value, is_available=(new_stock_value > 0))
+        
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Updated stock for {updated_count} low-stock medicine(s) to {new_stock_value} units.',
+            })
+            
+        messages.success(request, f"Updated stock for {updated_count} low-stock medicine(s) to {new_stock_value} units.")
+        return redirect(f"{request.path}?status=low_stock")
+    
+    
+    
+    
     # CUSTOM SUBDOMAIN Logic 
     if request.method == 'POST' and 'set_subdomain' in request.POST:
         if has_custom_domain:
@@ -271,7 +288,13 @@ def seller_dashboard(request):
     elif status_filter == 'hidden':
         # Hidden wo hai jo manually unavailable kiya gaya hai ya stock 0 hai
         medicines = medicines.filter(Q(is_available=False) | Q(stock_available__lte=0))
+    elif status_filter == 'low_stock' and has_stock_alerts:
+        medicines = medicines.filter(stock_available__gt=0, stock_available__lte=10)
+    elif status_filter == 'low_stock' and not has_stock_alerts:
+        status_filter = ''  # Feature pywalled - siltently treat as "All Medicines"
 
+        
+        
     
     
     context = {    
@@ -295,6 +318,9 @@ def seller_dashboard(request):
         
     }
     
+    context['low_stock_preview'] = low_stock_preview
+    context['show_low_stock_view_all'] = show_low_stock_view_all
+    context['low_stock_total_count'] = low_stock_total_count
     context['is_staff_account'] = request.user.is_staff_member
     context['can_manage_inventory'] = request.user.can_manage_inventory
     
