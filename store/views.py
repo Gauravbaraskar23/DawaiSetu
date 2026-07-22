@@ -243,29 +243,72 @@ def seller_dashboard(request):
     
     # CUSTOM SUBDOMAIN Logic 
     if request.method == 'POST' and 'set_subdomain' in request.POST:
-        if has_custom_domain:
-            raw_subdomain = request.POST.get('subdomain_name', '').strip().lower()
-
-            # Ye automatically saare spaces aur special characters hata dega aur lowercase kar dega
-            new_subdomain = re.sub(r'[^a-zA-Z0-9]', '', raw_subdomain)
-            
-            # Validation: Sirf a-z aur 0-9 allowed hai(no_spaces, no special characters)
-            if not new_subdomain:
-                messages.error(request, "Please enter a valid subdomain name.")
-            
-            # Check karein ki kisi or ne toh ye naam nhi le liya
-            # elif StoreProfile.objects.filter(custom_subdomain=new_subdomain).exclude(user=request.user).exists():
-            elif StoreProfile.objects.filter(custom_subdomain=new_subdomain).exclude(user=seller).exists():
-                messages.error(request, "This domain is already taken.Please choose another unique name. ")
-            
-            else:
-                store_profile.custom_subdomain = new_subdomain
-                store_profile.save()
-                messages.success(request, f"Congratulations! Your custom store link is now {new_subdomain}")
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
         
-        else:
-            messages.error(request, "Please upgrade your plan to use the custom domain masking feature.")
-        return redirect('seller_dashboard')
+        if not has_custom_domain:
+            msg = "Please upgrade your plan to use the custom domain masking feature."
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg})
+            messages.error(request, msg)
+            return redirect('seller_dashboard')
+        
+            
+        raw_subdomain = request.POST.get('subdomain_name', '').strip().lower()
+        new_subdomain = re.sub(r'[^a-zA-Z0-9]', '', raw_subdomain)
+
+        if not new_subdomain:
+            msg = "Please enter a valid subdomain name."
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg})
+            messages.error(request, msg)
+            return redirect('seller_dashboard')
+
+        if StoreProfile.objects.filter(custom_subdomain=new_subdomain).exclude(user=seller).exists():
+            msg = "This domain is already taken. Please choose another unique name."
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg})
+            messages.error(request, msg)
+            return redirect('seller_dashboard')
+
+        store_profile.custom_subdomain = new_subdomain
+        store_profile.save()
+        msg = f"Congratulations! Your custom store link is now {new_subdomain}"
+
+        if is_ajax:
+            new_link = f"http://{new_subdomain}.localhost:8000"
+            return JsonResponse({'status': 'success', 'message': msg, 'new_link': new_link})
+
+        messages.success(request, msg)
+        return redirect('seller_dashboard')   
+    
+        # if has_custom_domain:
+        #     raw_subdomain = request.POST.get('subdomain_name', '').strip().lower()
+
+        #     # Ye automatically saare spaces aur special characters hata dega aur lowercase kar dega
+        #     new_subdomain = re.sub(r'[^a-zA-Z0-9]', '', raw_subdomain)
+            
+        #     # Validation: Sirf a-z aur 0-9 allowed hai(no_spaces, no special characters)
+        #     if not new_subdomain:
+        #         msg = "Please enter a valid subdomain name."
+        #         if is_ajax:
+        #             return JsonResponse({'status': 'error', 'message': msg})
+                
+        #         messages.error(request, msg)
+        #         return redirect('seller_dashboard')
+            
+        #     # Check karein ki kisi or ne toh ye naam nhi le liya
+        #     # elif StoreProfile.objects.filter(custom_subdomain=new_subdomain).exclude(user=request.user).exists():
+        #     elif StoreProfile.objects.filter(custom_subdomain=new_subdomain).exclude(user=seller).exists():
+        #         messages.error(request, "This domain is already taken.Please choose another unique name. ")
+            
+        #     else:
+        #         store_profile.custom_subdomain = new_subdomain
+        #         store_profile.save()
+        #         messages.success(request, f"Congratulations! Your custom store link is now {new_subdomain}")
+        
+        # else:
+        #     messages.error(request, "Please upgrade your plan to use the custom domain masking feature.")
+        # return redirect('seller_dashboard')
     
 
 

@@ -120,7 +120,19 @@
                     {% if has_custom_domain %}
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                             <label for="id_subdomain_name" class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Your Custom Subdomain</label>
-                            <form method="POST" class="flex flex-col sm:flex-row gap-3">
+                            
+                            <form id="subdomain-form" onsubmit="return saveSubdomain(event)" class="flex flex-col sm:flex-row gap-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="set_subdomain" value="1">
+                                <div class="flex-1 relative flex items-center">
+                                    <input type="text" id="id_subdomain_name" name="subdomain_name" value="{{ store_profile.custom_subdomain|default:'' }}" placeholder="e.g., vermapharmacy" required class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-[#1E3A8A] outline-none text-right font-bold text-[#1E3A8A] bg-white">
+                                    <span class="ml-2 font-bold text-blue-800">.dawaisetu.com</span>
+                                </div>
+                                <button type="submit" id="subdomain-submit-btn" class="bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
+                                    Save Domain
+                                </button>
+                            </form>
+                            {% comment %} <form method="POST" class="flex flex-col sm:flex-row gap-3">
                                 {% csrf_token %}
                                 <input type="hidden" name="set_subdomain" value="1">
                                 <div class="flex-1 relative flex items-center">
@@ -130,30 +142,32 @@
                                 <button type="submit" class="bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold px-6 py-2 rounded-lg text-sm transition shadow-sm">
                                     Save Domain
                                 </button>
-                            </form>
+                            </form> {% endcomment %}
                             <p class="text-xs text-blue-600 mt-2">Customers visiting this link will only see your inventory automatically.</p>
                         </div>
 
-                        {% if store_profile.custom_subdomain %}
-                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                        <div id="subdomain-share-box-slot">
+                            {% if store_profile.custom_subdomain %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Exclusive Store Link</h3>
+                                        <p class="text-xs text-blue-700">Send this link to customers so they Only see your inventory.</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Exclusive Store Link</h3>
-                                    <p class="text-xs text-blue-700">Send this link to customers so they Only see your inventory.</p>
-                                </div>
-                            </div>
 
-                            <div class="flex w-full md:w-auto">
-                                <input type="text" id="store-link" readonly value="http://{{ store_profile.custom_subdomain }}.localhost:8000" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
-                                <button id="copyBtn" onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
-                                    Copy Link
-                                </button>
+                                <div class="flex w-full md:w-auto">
+                                    <input type="text" id="store-link" readonly value="http://{{ store_profile.custom_subdomain }}.localhost:8000" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
+                                    <button id="copyBtn" onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
+                                        Copy Link
+                                    </button>
+                                </div>
                             </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     {% else %}
                         <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 rounded-lg flex items-center justify-between">
                             <span class="text-sm font-bold text-yellow-800">Want professional link (yourname.DawaiSetu.com)?</span>
@@ -757,6 +771,77 @@
             btn.innerText = originalText;
             if (window.showToast) showToast('Network error. Please try again.', 'error');
         });
+    }
+
+    function saveSubdomain(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('subdomain-form');
+        const btn = document.getElementById('subdomain-submit-btn');
+        const input = document.getElementById('id_subdomain_name');
+
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        const formData = new FormData(form);
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+
+            if (data.status === 'success') {
+                if (window.showToast) showToast(data.message, 'success');
+
+                // Update the store-link input live, if it's on the page
+                const storeLinkInput = document.getElementById('store-link');
+                if (storeLinkInput && data.new_link) {
+                    storeLinkInput.value = data.new_link;
+                } else if (data.new_link) {
+                    // First-time subdomain save: box doesn't exist yet — inject it dynamically
+                    const slot = document.getElementById('subdomain-share-box-slot');
+                    if (slot) {
+                        slot.innerHTML = `
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-100 p-2 rounded-full text-[#1E3A8A]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-[#1E3A8A]">Share Your Exclusive Store Link</h3>
+                                        <p class="text-xs text-blue-700">Send this link to customers so they Only see your inventory.</p>
+                                    </div>
+                                </div>
+                                <div class="flex w-full md:w-auto">
+                                    <input type="text" id="store-link" readonly value="${data.new_link}" class="bg-white border border-blue-200 text-xs text-gray-500 rounded-l-lg px-3 py-2 w-full md:w-64 outline-none">
+                                    <button id="copyBtn" onclick="copyStoreLink()" class="bg-[#1E3A8A] hover:bg-blue-800 text-white px-4 py-2 rounded-r-lg text-xs font-bold transition">
+                                        Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } else {
+                if (window.showToast) showToast(data.message || 'Something went wrong.', 'error');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            if (window.showToast) showToast('Network error. Please try again.', 'error');
+        });
+
+        return false;
     }
 
     function openBulkLowStockPrompt() {
