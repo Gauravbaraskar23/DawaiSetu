@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load dict_extras %}
 {% block title %}Pricing Plans | DawaiSetu{% endblock %}
 
 {% block content %}
@@ -78,14 +79,38 @@
                     {% endif %}
 
                     <h3 class="text-base sm:text-2xl font-bold text-gray-900">{{ plan.name }}</h3>
-                    <p class="mt-2 sm:mt-4 text-xl sm:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
-                    <p class="text-[11px] sm:text-sm text-gray-500 mt-1 sm:mt-2">for {{ plan.duration_days }} days</p>
+                    
+
+                    {% comment %} {% with offer_data=plan_offers|dictsortreversed:plan.id %}{% endwith %} {% endcomment %}
+                    {% with offer_info=plan_offers|get_item:plan.id %}
+                    {% if offer_info and plan.price > 0 %}
+                    <div class="mt-2 mb-1">
+                        <span class="inline-block bg-orange-100 text-orange-700 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full">
+                            {{ offer_info.offer.discount_percent }}% OFF — {{ offer_info.offer.name }}
+                        </span>
+                    </div>
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                        <span class="text-xl sm:text-4xl font-extrabold text-[#10B981]">₹{{ offer_info.discounted_price|floatformat:2 }}</span>
+                        <span class="text-sm text-gray-400 line-through">₹{{ plan.price|floatformat:2 }}</span>
+                        {% comment %} <span class="text-xl sm:text-4xl font-extrabold text-[#10B981]">₹{{ offer_info.discounted_price }}</span>
+                        <span class="text-sm text-gray-400 line-through">₹{{ plan.price }}</span> {% endcomment %}
+                    </div>
+                    {% else %}
+                    <p class="mt-4 text-xl sm:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-2">for {{ plan.duration_days }} days</p>
+                    {% endwith %}
+
+                    {% comment %} <p class="mt-2 sm:mt-4 text-xl sm:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
+                    <p class="text-[11px] sm:text-sm text-gray-500 mt-1 sm:mt-2">for {{ plan.duration_days }} days</p> {% endcomment %}
 
                     <ul class="mt-4 sm:mt-8 space-y-2 sm:space-y-4 text-[11px] sm:text-sm text-gray-600 flex-grow text-left">
                         <li class="flex items-center gap-1.5 sm:gap-3">
                             <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#10B981] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             {% if plan.max_medicines == -1 %}
                                 <span class="font-extrabold text-[#1E3A8A]">Unlimited Medicines</span>
+                            {% elif plan.max_medicines == 0%}
+                                <span class="text-gray-500 italic">Add-on - no inventory limit change</span>
                             {% else %}
                                 Up to {{ plan.max_medicines }} Medicines
                             {% endif %}
@@ -223,119 +248,3 @@
 </script>
 {% endblock %}
 
-{% comment %} {% extends 'base.html' %}
-{% block title %}Pricing Plans | DawaiSetu{% endblock %}
-
-{% block content %}
-<div class="py-16 bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        
-        <div class="text-left mb-8">
-            <a href="javascript:history.back()" class="inline-flex items-center text-sm font-semibold text-[#1E3A8A] hover:text-blue-800 transition bg-white px-3 md:px-4 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Go Back
-            </a>
-        </div>
-
-        <!-- SECTION 1: INVENTORY PLANS -->
-        <div class="mb-20">
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Upgrade Your Pharmacy Inventory</h2>
-            <p class="mt-4 text-lg text-gray-500">Choose a base plan that fits your business needs to manage medicines.</p>
-            
-            <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {% for plan in plans %}
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden">
-                    
-                    {% if plan.max_medicines == -1 %}
-                        <div class="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-[10px] font-black uppercase tracking-wider py-1.5 px-4 rounded-bl-xl shadow-sm">
-                            Best Value
-                        </div>
-                    {% endif %}
-
-                    <h3 class="text-2xl font-bold text-gray-900">{{ plan.name }}</h3>
-                    <p class="mt-4 text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
-                    <p class="text-sm text-gray-500 mt-2">for {{ plan.duration_days }} days</p>
-                    
-                    <ul class="mt-8 space-y-4 text-sm text-gray-600 flex-grow text-left">
-                        <li class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            {% if plan.max_medicines == -1 %}
-                                <span class="font-extrabold text-[#1E3A8A]">Unlimited Medicines</span>
-                            {% else %}
-                                Up to {{ plan.max_medicines }} Medicines
-                            {% endif %}
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <svg class="w-5 h-5 {% if plan.allow_custom_link %}text-[#10B981]{% else %}text-gray-300{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span class="{% if not plan.allow_custom_link %}text-gray-400 line-through{% endif %}">Personal Store Link</span>
-                        </li>
-                    </ul>
-                    
-                    
-                    <a href="{% url 'plan_detail' plan.id %}" class="mt-8 w-full block py-2.5 px-4 bg-white border-2 border-gray-200 text-gray-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] font-bold rounded-xl transition text-center text-sm">
-                        View Plan Details
-                    </a>
-                    <!-- Notice: ?type=inventory URL mein implicitly default hai, par hum explicitly likh rahe hain clarity ke liye -->
-                    <a href="{% url 'checkout' plan.id %}?type=inventory" class="mt-3 w-full block py-3 px-4 {% if plan.price == 0 %}bg-gray-100 text-gray-800 hover:bg-gray-200{% else %}bg-[#1E3A8A] text-white hover:bg-blue-800{% endif %} font-bold rounded-xl transition text-center shadow-sm">
-                        {% if plan.price == 0 %}Get Started Free{% else %}Buy Base Plan{% endif %}
-                    </a>
-                </div>
-                {% empty %}
-                    <p class="col-span-full text-gray-500">No inventory plans available right now.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- DIVIDER -->
-        <div class="relative max-w-3xl mx-auto my-16">
-            <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-gray-300"></div>
-            </div>
-            <div class="relative flex justify-center">
-                <span class="px-4 bg-gray-50 text-sm font-black text-gray-400 uppercase tracking-widest">Optional Add-ons</span>
-            </div>
-        </div>
-
-        <!-- SECTION 2: PREMIUM PLACEMENT ADD-ONS -->
-        <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Premium Store Placement</h2>
-            <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">Boost your sales by appearing in the <strong>Top 6 Featured Pharmacies</strong> on our landing page. This is an add-on to your base plan.</p>
-            
-            <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-center max-w-5xl mx-auto">
-                {% for p_plan in premium_plans %}
-                <div class="bg-gradient-to-b from-yellow-50 to-white rounded-2xl shadow-sm border border-yellow-200 p-8 hover:shadow-lg transition-all duration-300 flex flex-col relative">
-                    
-                    <div class="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    </div>
-
-                    <h3 class="text-2xl font-bold text-gray-900">{{ p_plan.name }}</h3>
-                    <p class="mt-4 text-4xl font-extrabold text-yellow-600">₹{{ p_plan.price }}</p>
-                    <p class="text-sm text-gray-500 mt-2">for {{ p_plan.duration_days }} days</p>
-                    
-                    <ul class="mt-6 space-y-4 text-sm text-gray-700 flex-grow text-left">
-                        <li class="flex items-center gap-3 font-bold">
-                            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Guaranteed Top 6 Placement
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            "Premium Vendor" Badge
-                        </li>
-                    </ul>
-                    
-                    <!-- Notice: Yahan ?type=premium laga hai, jo backend ko batayega ki ye premium plan hai -->
-                    <a href="{% url 'checkout' p_plan.id %}?type=premium" class="mt-8 w-full block py-3 px-4 bg-yellow-500 text-white font-bold rounded-xl hover:bg-yellow-600 transition text-center shadow-md">
-                        Buy Premium Add-on
-                    </a>
-                </div>
-                {% empty %}
-                    <p class="col-span-full text-gray-500">No premium add-ons available right now.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-    </div>
-</div>
-{% endblock %}
- {% endcomment %}

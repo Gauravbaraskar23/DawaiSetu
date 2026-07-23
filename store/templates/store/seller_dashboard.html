@@ -5,6 +5,28 @@
 {% block content %}
 <div class="py-6 md:py-8">
 
+    {% if show_welcome_offer %}
+    <div id="welcome-offer-banner" class="mb-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md text-white">
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 rounded-full p-2 flex-shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+            </div>
+            <div>
+                <p class="font-black text-sm md:text-base">Welcome to DawaiSetu! 🎉</p>
+                <p class="text-xs md:text-sm text-white/90">Get {{ welcome_offer.discount_percent }}% off on your first subscription plan — exclusively for new sellers.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{% url 'pricing' %}" class="bg-white text-orange-600 hover:bg-gray-50 px-4 py-2 rounded-lg text-xs md:text-sm font-bold shadow-sm transition whitespace-nowrap">
+                Claim Offer
+            </a>
+            <button type="button" onclick="dismissWelcomeOffer()" class="text-white/80 hover:text-white p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Header -->
     <div class="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -715,6 +737,19 @@
         const statusSelect = document.querySelector('#search-filter-form select[name="status"]');
         statusSelect.value = 'low_stock';
         fetchResults();
+    }
+
+    function dismissWelcomeOffer() {
+        const banner = document.getElementById('welcome-offer-banner');
+        fetch("{% url 'dismiss_welcome_offer' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        }).then(() => {
+            if (banner) banner.remove();
+        });
     }
 
     function clearFilters() {

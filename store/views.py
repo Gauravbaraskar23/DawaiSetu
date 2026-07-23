@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from subscriptions.models import StoreProfile
+from subscriptions.models import StoreProfile, PromoOffer, UserSubscription
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth, TruncYear 
 import csv
@@ -344,7 +344,14 @@ def seller_dashboard(request):
     print("Medicines after filter:", medicines.count())
         
         
-    
+    show_welcome_offer = False
+    welcome_offer = None
+    if not request.user.is_staff_member and not seller.has_dismissed_welcome_offer:
+        if not UserSubscription.objects.filter(user=seller).exists():
+            candidate_offer = PromoOffer.objects.filter(is_active=True, first_time_only=True).first()
+            if candidate_offer and candidate_offer.is_valid():
+                welcome_offer = candidate_offer
+                show_welcome_offer = True
     
     context = {    
         'medicines' : medicines,
@@ -367,6 +374,8 @@ def seller_dashboard(request):
         
     }
     
+    context['show_welcome_offer'] = show_welcome_offer
+    context['welcome_offer'] = welcome_offer
     context['low_stock_preview'] = low_stock_preview
     context['show_low_stock_view_all'] = show_low_stock_view_all
     context['low_stock_total_count'] = low_stock_total_count
@@ -1344,4 +1353,13 @@ def store_analytics(request):
     return render(request, 'store/analytics.html', context)
 
 
-    
+@login_required(login_url='login')
+def dismiss_welcome_offer(request):
+    if request.method == 'POST':
+        seller = request.user.effective_seller
+        seller.has_dismissed_welcome_offer = True
+        seller.save(update_fields=['has_dismissed_welcome_offer'])
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
+
+   

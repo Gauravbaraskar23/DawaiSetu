@@ -30,6 +30,7 @@ class User(AbstractUser):
         help_text="Agar ye ek staff sub-account hai, toh iska Admin/Owner kaun hai."
     )
     staff_role = models.CharField(max_length=20, choices=STAFF_ROLE_CHOICES, blank=True, null=True)
+    has_dismissed_welcome_offer = models.BooleanField(default=False)
     
     
     def __str__(self):
@@ -94,8 +95,15 @@ class User(AbstractUser):
             features['has_custom_domain'] = features['has_custom_domain'] or plan.has_custom_domain
             features['max_staff_accounts'] = max(features['max_staff_accounts'], plan.max_staff_accounts)
 
-        features['max_medicines'] = -1 if -1 in medicine_limits else max(medicine_limits)
-        
+        # features['max_medicines'] = -1 if -1 in medicine_limits else max(medicine_limits)
+        if medicine_limits:
+            if -1 in medicine_limits:
+                features['max_medicines'] = -1
+            else:
+                # Ignore 0-value add-on plans when calculating the medicine limit,
+                # so a staff-only add-on never accidentally zeroes out inventory access
+                non_zero_limits = [m for m in medicine_limits if m > 0]
+                features['max_medicines'] = max(non_zero_limits) if non_zero_limits else 50
         return features
     
     @property

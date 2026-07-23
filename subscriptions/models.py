@@ -96,21 +96,54 @@ class StoreProfile(models.Model):
     def __str__(self):
         return f"Store Profile: {self.user.agency_name}"
     
-    
-    
-    
-# from django.db.models.signals import post_save
-# from django.dispatch import receiver
 
-# @receiver(post_save, sender=User)
-# def create_store_profile(sender, instance, created, **kwargs):
-#     if created and instance.is_store_staff: # Sirf Sellers ke liye
-#         StoreProfile.objects.create(user=instance)
 
-# @receiver(post_save, sender=User)
-# def save_store_profile(sender, instance, **kwargs):
-#     if instance.is_store_staff:
-#         # Check if profile exists, if not create it (handles migration issues)
-#         if not hasattr(instance, 'store_profile'):
-#             StoreProfile.objects.create(user=instance)
-#         instance.store_profile.save()
+class PromoOffer(models.Model):
+    name = models.CharField(max_length=100, help_text="e.g. 'First-Time Seller Offer'")
+    discount_percent = models.PositiveIntegerField(help_text="e.g. 30 for 30% off")
+    plans = models.ManyToManyField(SubscriptionPlan, blank=True, help_text="Leave empty to apply to All plans")
+    first_time_only = models.BooleanField(default=False, help_text="Only show to sellers who never purchased any plan")
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True, help_text="Leave blank for expiry")
+    is_active = models.BooleanField(default=True)
+    
+    def is_valid(self):
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.valid_from and now < self.valid_from:
+            return False
+        if self.valid_until and now > self.valid_until:
+            return False
+        return True
+    
+    def applies_to_plan(self, plan):
+        if not self.plans.exists():
+            return True
+        return self.plans.filter(id=plan.id).exists()
+    
+    def __str__(self):
+        return f"{self.name} ({self.discount_percent}% off)"
+    
+def get_best_offer_for_seller_and_plan(seller, plan):
+    """Returns the highest-value valid offer this seller is eligible for on a given plan."""
+    has_ever_subscribed = UserSubscription.objects.filter(user=seller).exists()
+    best_offer = None
+    best_discount = 0
+    
+    for offer in PromoOffer.objects.filter(is_active=True):
+        if not offer.is_valid():
+            continue
+        if offer.first_time_only and has_ever_subscribed:
+            continue
+        if not offer.applies_to_plan(plan):
+            continue
+        if offer.discount_percent > best_discount:
+            best_discount = offer.discount_percent
+            best_offer = offer
+    
+    return best_offer
+
+  
+    
+  

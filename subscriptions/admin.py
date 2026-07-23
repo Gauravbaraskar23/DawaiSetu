@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SubscriptionPlan, UserSubscription, PremiumPlacementPlan, PremiumPlacementSubscription, StoreProfile
+from .models import SubscriptionPlan, UserSubscription, PremiumPlacementPlan, PremiumPlacementSubscription, StoreProfile, PromoOffer
  
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
@@ -32,3 +32,12 @@ class StoreProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'fssai_license_number', 'is_verified', 'custom_subdomain')
     list_editable = ('is_verified',)
     search_fields = ('user__agency_name', 'fssai_license_number', 'custom_subdomain')
+    
+@admin.register(PromoOffer)
+class PromoOfferAdmin(admin.ModelAdmin):
+    list_display = ('name', 'discount_percent', 'first_time_only', 'is_active', 'valid_from', 'valid_until')
+    list_filter = ('is_active', 'first_time_only')
+    filter_horizontal = ('plans',)
+    
+    
+    

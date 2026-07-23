@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
-from .models import SubscriptionPlan, UserSubscription, PremiumPlacementPlan, PremiumPlacementSubscription
+from .models import SubscriptionPlan, UserSubscription, PremiumPlacementPlan, PremiumPlacementSubscription, get_best_offer_for_seller_and_plan
 from django.db import transaction
 from notifications.models import Notification
 
@@ -19,9 +19,19 @@ def pricing(request):
     plans = SubscriptionPlan.objects.all().order_by('price')
     premium_plans = PremiumPlacementPlan.objects.all().order_by('price')
     
+    plan_offers = {}
+    if request.user.is_authenticated and request.user.is_store_staff:
+        seller = request.user.effective_seller
+        for plan in plans:
+            offer = get_best_offer_for_seller_and_plan(seller, plan)
+            if offer:
+                discounted_price = round(float(plan.price) * (100 - offer.discount_percent) / 100, 2)
+                plan_offers[plan.id] = {'offer': offer, 'discounted_price': discounted_price}
+                
     return render(request, 'subscriptions/pricing.html', {
         'plans':plans,
-        'premium_plans' : premium_plans
+        'premium_plans' : premium_plans,
+        'plan_offers': plan_offers,
         })
 
 
@@ -96,8 +106,17 @@ def checkout(request, plan_id):
         messages.success(request, f"You have successfully activated the {plan.name} plan!")
         return redirect('seller_dashboard')
     
+    final_price = plan.price
+    if plan_type != 'premium':
+        seller = request.user.effective_seller
+        applied_offer = get_best_offer_for_seller_and_plan(seller, plan)
+        if applied_offer:
+            final_price = round(float(plan.price) * (100 - applied_offer.discount_percent) / 100, 2)
+            
+            
     # Paid Plan ke liye Razorpay Order Create karna
-    amount = int(plan.price * 100) # Razorpay paise me amount leta hai (₹1 = 100 paise)
+    amount = int(final_price * 100) # Razorpay paise me amount leta hai (₹1 = 100 paise)
+    # amount = int(plan.price * 100) # Razorpay paise me amount leta hai (₹1 = 100 paise)
     
     payment_data = {
         'amount': amount,
