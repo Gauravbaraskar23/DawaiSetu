@@ -78,10 +78,10 @@
                         </div>
                     {% endif %}
 
+                    
                     <h3 class="text-base sm:text-2xl font-bold text-gray-900">{{ plan.name }}</h3>
                     
 
-                    {% comment %} {% with offer_data=plan_offers|dictsortreversed:plan.id %}{% endwith %} {% endcomment %}
                     {% with offer_info=plan_offers|get_item:plan.id %}
                     {% if offer_info and plan.price > 0 %}
                     <div class="mt-2 mb-1">
@@ -92,18 +92,15 @@
                     <div class="flex items-baseline gap-2 flex-wrap">
                         <span class="text-xl sm:text-4xl font-extrabold text-[#10B981]">₹{{ offer_info.discounted_price|floatformat:2 }}</span>
                         <span class="text-sm text-gray-400 line-through">₹{{ plan.price|floatformat:2 }}</span>
-                        {% comment %} <span class="text-xl sm:text-4xl font-extrabold text-[#10B981]">₹{{ offer_info.discounted_price }}</span>
-                        <span class="text-sm text-gray-400 line-through">₹{{ plan.price }}</span> {% endcomment %}
+                        
                     </div>
                     {% else %}
                     <p class="mt-4 text-xl sm:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
                     {% endif %}
                     <p class="text-sm text-gray-500 mt-2">for {{ plan.duration_days }} days</p>
-                    {% endwith %}
+                    {% endwith %} 
 
-                    {% comment %} <p class="mt-2 sm:mt-4 text-xl sm:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
-                    <p class="text-[11px] sm:text-sm text-gray-500 mt-1 sm:mt-2">for {{ plan.duration_days }} days</p> {% endcomment %}
-
+                    
                     <ul class="mt-4 sm:mt-8 space-y-2 sm:space-y-4 text-[11px] sm:text-sm text-gray-600 flex-grow text-left">
                         <li class="flex items-center gap-1.5 sm:gap-3">
                             <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#10B981] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>

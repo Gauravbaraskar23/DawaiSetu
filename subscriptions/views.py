@@ -132,7 +132,10 @@ def checkout(request, plan_id):
         'razorpay_order_id': razorpay_order['id'],
         'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
         'amount': amount,
-        'currency': 'INR'
+        'currency': 'INR',
+        'plan_type': plan_type,
+        'final_price': final_price,
+        'applied_offer': applied_offer if plan_type != 'premium' else None,
     }
     return render(request, 'subscriptions/checkout.html', context)
 
@@ -262,9 +265,18 @@ def plan_detail(request, plan_id):
     today = timezone.now()
     expiry_date = today + timedelta(days=plan.duration_days)
     
+    offer_info = None
+    if request.user.is_authenticated and request.user.is_store_staff:
+        seller = request.user.effective_seller
+        offer = get_best_offer_for_seller_and_plan(seller, plan)
+        if offer and plan.price > 0:
+            discounted_price = round(float(plan.price) * (100 - offer.discount_percent) /100, 2)
+            offer_info = {'offer': offer, 'discounted_price': discounted_price}
+            
     return render(request, 'subscriptions/plan_detail.html', {
         'plan':plan,
         'today': today,
         'expiry_date': expiry_date,
+        'offer_info': offer_info,
         
     })

@@ -22,9 +22,23 @@
                     <p class="text-sm text-gray-500 mt-1">Valid for {{ plan.duration_days }} days</p>
                 </div>
                 <div class="text-left sm:text-right">
-                    <p class="text-3xl md:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
+                    {% if offer_info %}
+                    <span class="inline-block bg-orange-100 text-orange-700 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full mb-1">
+                        {{ offer_info.offer.discount_percent }}% OFF
+                    </span>
+                    <div class="flex items-baseline gap-2 justify-end flex-wrap">
+                        <p class="text-3xl md:text-4xl font-extrabold text-[#1E3A8A]">₹{{ offer_info.discounted_price|floatformat:2 }}</p>
+                        <p class="text-base text-gray-400 line-through">₹{{ plan.price|floatformat:2 }}</p>
+                    </div>
+                    {% else %}
+                    <p class="text-3xl md:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price|floatformat:2 }}</p>
+                    {% endif %}
                     <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">One-time / {{ plan.duration_days }} days</p>
                 </div>
+                {% comment %} <div class="text-left sm:text-right">
+                    <p class="text-3xl md:text-4xl font-extrabold text-[#1E3A8A]">₹{{ plan.price }}</p>
+                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">One-time / {{ plan.duration_days }} days</p>
+                </div> {% endcomment %}
                 
             </div>
 
