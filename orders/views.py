@@ -275,20 +275,31 @@ def update_profile(request):
             user.agency_name = request.POST.get('agency_name', user.agency_name)
             user.gsitn_no = request.POST.get('gstin_no', user.gsitn_no)
             
-            # --- NAYA CODE (GPS Location Save Karna) ---
-            if hasattr(user, 'store_profile'):
-                profile = user.store_profile
-                lat = request.POST.get('latitude')
-                lng = request.POST.get('longitude')
+            # --- NAYA CODE: GPS Location Update Karna (Seedha User model mein) ---
+            lat = request.POST.get('latitude')
+            lng = request.POST.get('longitude')
+            
+            if lat and lng:
+                try:
+                    user.latitude = float(lat)
+                    user.longitude = float(lng)
+                except ValueError:
+                    pass
+            # ---------------------------------
+            # # --- NAYA CODE (GPS Location Save Karna) ---
+            # if hasattr(user, 'store_profile'):
+            #     profile = user.store_profile
+            #     lat = request.POST.get('latitude')
+            #     lng = request.POST.get('longitude')
                 
-                # Agar Latitude aur Longitude aaye hain toh table me save karein
-                if lat and lng:
-                    try:
-                        profile.latitude = float(lat)
-                        profile.longitude = float(lng)
-                        profile.save()
-                    except ValueError:
-                        pass # Ignore invalid data error
+            #     # Agar Latitude aur Longitude aaye hain toh table me save karein
+            #     if lat and lng:
+            #         try:
+            #             profile.latitude = float(lat)
+            #             profile.longitude = float(lng)
+            #             profile.save()
+            #         except ValueError:
+            #             pass # Ignore invalid data error
             # ---------------------------------------------
         
         # Profile Image Handle Karein

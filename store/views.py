@@ -1395,28 +1395,35 @@ def find_nearby_stores(request):
     user_lon = float(user_lon)
     
     # Un sabhi stores ko fetch karein jinki location database mein hai
-    stores = StoreProfile.objects.filter(latitude__isnull=False, longitude__isnull=False)
+    # stores = StoreProfile.objects.filter(latitude__isnull=False, longitude__isnull=False)
+    
+    # NAYA CHANGE: Seedha User model se active sellers ko filter karein
+    sellers = User.objects.filter(is_store_staff=True, latitude__isnull=False, longitude__isnull=False)
     
     nearby_stores = []
     
-    for store in stores:
-        # Har store ki customer se doori calculate karein
-        store_lat = float(store.latitude)
-        store_lon = float(store.longitude)
+    # for store in stores:
+    #     # Har store ki customer se doori calculate karein
+    #     store_lat = float(store.latitude)
+    #     store_lon = float(store.longitude)
         
-        dist = calculate_distance(user_lat, user_lon, store_lat, store_lon)
+    #     dist = calculate_distance(user_lat, user_lon, store_lat, store_lon)
+    for seller in sellers:
+        seller_lat = float(seller.latitude)
+        seller_lon = float(seller.longitude)
         
+        dist = calculate_distance(user_lat, user_lon, seller_lat, seller_lon)   
         approx_road_distance = dist * 1.4
         
         # Agar doori max_distance (jaise 15 km) se kam hai, toh list me add karein
-        if dist <= max_distance:
+        if approx_road_distance <= max_distance:
             nearby_stores.append({
-                'id': store.user.id,
-                'agency_name': store.user.agency_name, # Ya jo bhi aapka store name field ho
-                'address': store.store_address,
-                'city': store.city,
+                'id': seller.id,
+                'agency_name': seller.agency_name, # Ya jo bhi aapka store name field ho
+                'address': seller.address,
+                'city': seller.pincode,
                 'distance_km': round(dist, 1), # Doori ko 1 decimal tak round karein (e.g. 2.4 km)
-                'is_verified': store.is_verified,
+                # 'is_verified': seller.is_verified,
                 'distance_km': round(approx_road_distance, 1), # Naya distance bhejein
             })
             

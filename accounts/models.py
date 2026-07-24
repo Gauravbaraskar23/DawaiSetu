@@ -23,6 +23,11 @@ class User(AbstractUser):
     gsitn_no = models.CharField(max_length=50, blank=True, null=True)
     pan_no = models.CharField(max_length=20, blank=True, null=True)
     
+    # GPS Coordinates (Map par dikhane ya distance nikalne ke liye)
+    latitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
+        
+        
     # STAFF/ Multi User Feature
     parent_seller = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True,
