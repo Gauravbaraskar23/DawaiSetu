@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import place_order, my_orders, order_detail, profile_view, update_profile, add_to_cart, cart_checkout, update_cart_quantity, remove_from_cart, submit_feedback, generate_invoice, order_history, update_order_status, cancel_order, delete_order_history, export_orders_excel, reorder, submit_review
+from .views import place_order, my_orders, order_detail, profile_view, update_profile, add_to_cart, cart_checkout, update_cart_quantity, remove_from_cart, submit_feedback, generate_invoice, order_history, update_order_status, cancel_order, delete_order_history, export_orders_excel, reorder, submit_review, terms_conditions, privacy_policy
 
 urlpatterns = [
     path('', my_orders, name='my_orders'),
@@ -27,6 +27,9 @@ urlpatterns = [
     path('reorder/<int:order_id>/', reorder, name='reorder_order'),
     path('review/<int:medicine_id>/', submit_review, name='submit_review'),
     
-    
+     # T&C and Privacy 
+    path('terms-and-conditions/', terms_conditions, name='terms'),
+    path('privacy-policy/', privacy_policy, name='privacy'),
+        
 ]
 

@@ -23,5 +23,5 @@ urlpatterns = [
 
     path('analytics/', store_analytics, name='store_analytics'), 
     path('dismiss-welcome-offer/', dismiss_welcome_offer, name='dismiss_welcome_offer'),
-             
+
 ]

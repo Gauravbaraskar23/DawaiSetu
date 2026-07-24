@@ -43,3 +43,11 @@ class CustomLoginView(LoginView):
 class CustomLogoutView(LogoutView):
     # Safely redirects the user back to the login page after they sign out
     next_page = reverse_lazy('login')
+    
+    
+
+# def terms_conditions(request):
+#     return render(request, 'partials/profile_terms.html')
+
+# def privacy_policy(request):
+#     return render(request, 'partials/profile_privacy.html')

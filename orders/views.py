@@ -620,3 +620,9 @@ def submit_review(request, medicine_id):
     return redirect('order_history')
 
 
+
+def terms_conditions(request):
+    return render(request, 'partials/profile_terms.html')
+
+def privacy_policy(request):
+    return render(request, 'partials/profile_privacy.html')

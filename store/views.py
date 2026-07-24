@@ -1362,4 +1362,3 @@ def dismiss_welcome_offer(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'})
 
-   

@@ -16,6 +16,16 @@
         border-color: #10B981; /* DawaiSetu Health Green */
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
+
+    {% comment %} <!-- Optional: Smooth fade-in animation ke liye ye style head me ya idhar hi add kar dein --> {% endcomment %}
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
 </style>
 
 <div class="flex min-h-screen items-center justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8 bg-gray-50">
@@ -70,9 +80,29 @@
                 </div>
             </div>
 
-            <button type="submit" class="group relative flex w-full justify-center rounded-md bg-[#10B981] py-3 px-4 text-sm font-bold text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:ring-offset-2 transition-colors duration-200 mt-6">
-                Log In
+            <!-- Terms and Conditions Checkbox -->
+            <div class="flex items-start mb-6">
+                <div class="flex items-center h-5">
+                    <input id="terms_checkbox" type="checkbox" class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-[#1E3A8A] cursor-pointer" required>
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="terms_checkbox" class="font-medium text-gray-600 cursor-pointer">
+                        I agree to the 
+                        <a href="{% url 'terms' %}" target="_blank" class="text-[#1E3A8A] hover:underline font-bold">Terms & Conditions</a> 
+                        and 
+                        <a href="{% url 'privacy' %}" target="_blank" class="text-[#1E3A8A] hover:underline font-bold">Privacy Policy</a>.
+                    </label>
+                </div>
+            </div>
+
+            <!-- Login Button (Visible but disabled by default) -->
+            <button type="submit" id="login_button" disabled class="w-full text-white bg-[#1E3A8A] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-lg text-sm px-5 py-3 text-center transition-all shadow-md opacity-50 cursor-not-allowed">
+                Sign in to your account
             </button>
+
+            {% comment %} <button type="submit" class="group relative flex w-full justify-center rounded-md bg-[#10B981] py-3 px-4 text-sm font-bold text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:ring-offset-2 transition-colors duration-200 mt-6">
+                Log In
+            </button> {% endcomment %}
         </form>
 
         <div class="text-center mt-4">
@@ -86,4 +116,29 @@
         
     </div>
 </div>
+
+<!-- JavaScript to toggle button state -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkbox = document.getElementById("terms_checkbox");
+        const loginBtn = document.getElementById("login_button");
+
+        // Jab bhi checkbox click hoga, ye function chalega
+        checkbox.addEventListener("change", function() {
+            if (this.checked) {
+                // Button ko enable karna
+                loginBtn.disabled = false;
+                // Dhundhlapan aur "not-allowed" cursor hatana
+                loginBtn.classList.remove("opacity-50", "cursor-not-allowed");
+            } else {
+                // Wapas disable kar dena
+                loginBtn.disabled = true;
+                // Wapas dhundhla aur "not-allowed" cursor lagana
+                loginBtn.classList.add("opacity-50", "cursor-not-allowed");
+            }
+        });
+    });
+</script>
+
+
 {% endblock %}

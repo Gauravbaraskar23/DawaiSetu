@@ -25,4 +25,9 @@ urlpatterns = [
     path('password-reset-complete/',
          auth_views.PasswordResetCompleteView.as_view(template_name='registration/custom_password_reset_complete.html'),
          name='password_reset_complete'),
+    
+    # T&C and Privacy 
+#     path('terms-and-conditions/', terms_conditions, name='terms'),
+#     path('privacy-policy/', privacy_policy, name='privacy'),
+    
 ]
