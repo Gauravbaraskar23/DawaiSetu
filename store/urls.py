@@ -1,5 +1,5 @@
 from django.urls import path
-from store.views import  landing_page, seller_dashboard, add_medicine, store_home, medicine_detail, edit_medicine, delete_medicine, upload_medicine_image, bulk_upload_medicines, manage_staff, delete_staff, toggle_staff_status, store_analytics, dismiss_welcome_offer
+from store.views import  landing_page, seller_dashboard, add_medicine, store_home, medicine_detail, edit_medicine, delete_medicine, upload_medicine_image, bulk_upload_medicines, manage_staff, delete_staff, toggle_staff_status, store_analytics, dismiss_welcome_offer, find_nearby_stores
 
 
 urlpatterns = [
@@ -23,5 +23,5 @@ urlpatterns = [
 
     path('analytics/', store_analytics, name='store_analytics'), 
     path('dismiss-welcome-offer/', dismiss_welcome_offer, name='dismiss_welcome_offer'),
-
+    path('api/nearby-stores/', find_nearby_stores, name='find_nearby_stores'),
 ]

@@ -136,6 +136,38 @@
         {% endif %}
     </div>
 
+
+    <!-- ===== NEW: HYPERLOCAL LOCATION FILTER BANNER ===== -->
+    <div class="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 md:p-6 border border-blue-100 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+        <div>
+            <h3 class="text-lg md:text-xl font-extrabold text-[#1E3A8A] flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Find Pharmacies Near You
+            </h3>
+            <p class="text-gray-600 mt-1 text-xs md:text-sm">Filter medicines by verified stores in your locality for faster delivery.</p>
+        </div>
+        
+        <button id="getLocationBtn" onclick="fetchNearbyStores()" class="shrink-0 bg-[#1E3A8A] hover:bg-blue-800 text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-md transition-all flex items-center gap-2 w-full md:w-auto justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Use My Location</span>
+        </button>
+    </div>
+
+    <!-- Container for Nearby Stores Results (Hidden by default) -->
+    <div id="nearbyStoresContainer" class="hidden mb-6 md:mb-8 border-b border-gray-200 pb-6">
+        <div id="storesLoader" class="hidden flex flex-col items-center justify-center py-6">
+            <svg class="animate-spin h-8 w-8 text-[#1E3A8A] mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-500 text-sm font-medium animate-pulse">Finding stores near you...</p>
+        </div>
+        
+        <div id="nearbyStoresGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Dynamic Stores JS se aayenge -->
+        </div>
+        
+        <div id="storesMessage" class="hidden text-center py-4 text-gray-500 text-sm font-medium bg-gray-50 rounded-xl border border-gray-100 mt-4"></div>
+    </div>
+
+
     <!-- ===== MOBILE TOP BAR (Search + Filter Icon) ===== -->
     <div class="mobile-topbar mb-4 gap-2 items-center">
         <div class="relative flex-1">
@@ -632,6 +664,107 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
+// ===== NEW: HYPERLOCAL JAVASCRIPT =====
+function fetchNearbyStores() {
+    const btn = document.getElementById("getLocationBtn");
+    const container = document.getElementById("nearbyStoresContainer");
+    const loader = document.getElementById("storesLoader");
+    const grid = document.getElementById("nearbyStoresGrid");
+    const msgBox = document.getElementById("storesMessage");
+
+    // UI Reset
+    container.classList.remove("hidden");
+    grid.innerHTML = "";
+    msgBox.classList.add("hidden");
+
+    if (navigator.geolocation) {
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = "Locating...";
+        btn.disabled = true;
+        btn.classList.add("opacity-75", "cursor-not-allowed");
+        loader.classList.remove("hidden");
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Call API
+                fetch(`/api/nearby-stores/?lat=${lat}&lng=${lng}&radius=15`)
+                    .then(response => response.json())
+                    .then(data => {
+                        loader.classList.add("hidden");
+                        resetButton(btn, originalBtnText);
+
+                        if (data.status === 'success' && data.stores.length > 0) {
+                            renderStores(data.stores);
+                        } else {
+                            showMessage("No medical stores found within 15 km of your location.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        loader.classList.add("hidden");
+                        resetButton(btn, originalBtnText);
+                        showMessage("Failed to load stores. Please try again later.");
+                    });
+            },
+            function(error) {
+                loader.classList.add("hidden");
+                resetButton(btn, originalBtnText);
+                showMessage("Location access denied or unavailable. Please enable GPS.");
+            }
+        );
+    } else {
+        container.classList.remove("hidden");
+        showMessage("Geolocation is not supported by your browser.");
+    }
+}
+
+function renderStores(stores) {
+    const grid = document.getElementById("nearbyStoresGrid");
+    let html = "";
+    
+    // Sirf top 3 stores dikhayenge taaki UI crowded na lage
+    const displayStores = stores.slice(0, 3);
+
+    displayStores.forEach((store, index) => {
+        const distColor = store.distance_km <= 2.0 ? "bg-green-50 text-green-700 border-green-200" : "bg-blue-50 text-blue-700 border-blue-200";
+        const verifiedIcon = store.is_verified ? `<svg class="w-4 h-4 text-blue-500 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>` : '';
+
+        // Jab user is button par click karega, toh url me ?seller_id= lag jayega
+        // Jisse automatically aapka existing filter form trigger ho jayega
+        html += `
+            <a href="?seller_id=${store.id}" class="block bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:border-[#1E3A8A] transition-colors relative overflow-hidden group">
+                <div class="absolute top-0 right-0 bg-gray-100 text-gray-500 font-bold text-[10px] px-2 py-1 rounded-bl-lg">#${index + 1}</div>
+                <h3 class="text-sm font-bold text-gray-900 mb-1 truncate pr-6">${store.agency_name || 'Medical Store'}${verifiedIcon}</h3>
+                <p class="text-xs text-gray-500 mb-3 truncate">${store.address || store.city || 'Address not available'}</p>
+                <div class="flex items-center justify-between">
+                    <span class="px-2 py-1 text-[10px] font-bold rounded-md border ${distColor}">
+                        🚗 ${store.distance_km} KM
+                    </span>
+                    <span class="text-xs font-bold text-[#1E3A8A] group-hover:underline">Shop Now →</span>
+                </div>
+            </a>
+        `;
+    });
+
+    grid.innerHTML = html;
+}
+
+function showMessage(msg) {
+    const msgBox = document.getElementById("storesMessage");
+    msgBox.innerHTML = msg;
+    msgBox.classList.remove("hidden");
+}
+
+function resetButton(btn, originalText) {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    btn.classList.remove("opacity-75", "cursor-not-allowed");
+}
 </script>
 
 {% endblock %}

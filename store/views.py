@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 import uuid
+import math
 import re 
 import json
 import pandas as pd
@@ -1362,3 +1363,65 @@ def dismiss_welcome_offer(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'})
 
+# Distance nikanlne ka mathematical function (In kilometers)
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371.0 # Earth radius in kilometers
+    
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat1)
+    log2_rad = math.radians(lon2)
+    
+    dlon = log2_rad - lon1_rad
+    dlat = lat2_rad - lat1_rad
+    
+    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    distance = R * c
+    return distance
+
+# View jo aas-pass ke stores dhundhega
+def find_nearby_stores(request):
+    # Customer ka latitude aur longitude AJAX request se aayega
+    user_lat = request.GET.get('lat')
+    user_lon = request.GET.get('lng')
+    max_distance = float(request.GET.get('radius', 15)) # Default 15 KM ke andar dhundhenge
+    
+    if not user_lat or not user_lon:
+        return JsonResponse({'error': 'Location coordinates missing'}, status=400)
+        
+    user_lat = float(user_lat)
+    user_lon = float(user_lon)
+    
+    # Un sabhi stores ko fetch karein jinki location database mein hai
+    stores = StoreProfile.objects.filter(latitude__isnull=False, longitude__isnull=False)
+    
+    nearby_stores = []
+    
+    for store in stores:
+        # Har store ki customer se doori calculate karein
+        store_lat = float(store.latitude)
+        store_lon = float(store.longitude)
+        
+        dist = calculate_distance(user_lat, user_lon, store_lat, store_lon)
+        
+        approx_road_distance = dist * 1.4
+        
+        # Agar doori max_distance (jaise 15 km) se kam hai, toh list me add karein
+        if dist <= max_distance:
+            nearby_stores.append({
+                'id': store.user.id,
+                'agency_name': store.user.agency_name, # Ya jo bhi aapka store name field ho
+                'address': store.store_address,
+                'city': store.city,
+                'distance_km': round(dist, 1), # Doori ko 1 decimal tak round karein (e.g. 2.4 km)
+                'is_verified': store.is_verified,
+                'distance_km': round(approx_road_distance, 1), # Naya distance bhejein
+            })
+            
+    # List ko sabse nazdeek wale store ke hisaab se sort karein (Kam doori wala sabse upar)
+    nearby_stores.sort(key=lambda x: x['distance_km'])
+    
+    return JsonResponse({'status': 'success', 'stores': nearby_stores})
+    

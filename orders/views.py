@@ -275,6 +275,22 @@ def update_profile(request):
             user.agency_name = request.POST.get('agency_name', user.agency_name)
             user.gsitn_no = request.POST.get('gstin_no', user.gsitn_no)
             
+            # --- NAYA CODE (GPS Location Save Karna) ---
+            if hasattr(user, 'store_profile'):
+                profile = user.store_profile
+                lat = request.POST.get('latitude')
+                lng = request.POST.get('longitude')
+                
+                # Agar Latitude aur Longitude aaye hain toh table me save karein
+                if lat and lng:
+                    try:
+                        profile.latitude = float(lat)
+                        profile.longitude = float(lng)
+                        profile.save()
+                    except ValueError:
+                        pass # Ignore invalid data error
+            # ---------------------------------------------
+        
         # Profile Image Handle Karein
         if 'profile_image' in request.FILES:
             user.profile_image = request.FILES['profile_image']
