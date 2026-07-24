@@ -469,7 +469,7 @@ def submit_feedback(request):
                 subject=email_subject,
                 message=email_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=['DawaiSetusupportcontact@gmail.com'],
+                recipient_list=['meditracksupportcontact@gmail.com'],
                 fail_silently=False,
             )
         except Exception as e:

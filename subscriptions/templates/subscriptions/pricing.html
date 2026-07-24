@@ -62,7 +62,66 @@
 
             <div id="plans-grid" class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-8">
                 {% for plan in plans %}
-                <div class="plan-card bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-8 hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden"
+                <div class="plan-card bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-5 hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden h-full"
+                    data-duration-days="{{ plan.duration_days }}"
+                    data-unlimited="{% if plan.max_medicines == -1 %}true{% else %}false{% endif %}"
+                    data-allow_custom_link="{% if plan.allow_custom_link %}true{% else %}false{% endif %}"
+                    data-has_custom_domain="{% if plan.has_custom_domain %}true{% else %}false{% endif %}"
+                    data-has_analytics_dashboard="{% if plan.has_analytics_dashboard %}true{% else %}false{% endif %}"
+                    data-has_stock_alerts="{% if plan.has_stock_alerts %}true{% else %}false{% endif %}"
+                    data-can_export_data="{% if plan.can_export_data %}true{% else %}false{% endif %}"
+                    data-max_staff_accounts="{% if plan.max_staff_accounts > 0 %}true{% else %}false{% endif %}">
+
+                    {% if plan.max_medicines == -1 %}
+                        <div class="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider py-1 px-2 sm:px-3 rounded-bl-xl shadow-sm">
+                            Best Value
+                        </div>
+                    {% endif %}
+
+                    <h3 class="text-sm sm:text-lg font-bold text-gray-900 mb-1.5 text-center">{{ plan.name }}</h3>
+
+                    {% with offer_info=plan_offers|get_item:plan.id %}
+                    {% if offer_info and plan.price > 0 %}
+                        <span class="inline-block bg-orange-100 text-orange-700 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mb-1">
+                            {{ offer_info.offer.discount_percent }}% OFF
+                        </span>
+                        <div class="flex items-baseline gap-1.5 flex-wrap">
+                            <span class="text-base sm:text-2xl font-extrabold text-[#10B981]">₹{{ offer_info.discounted_price|floatformat:2 }}</span>
+                            <span class="text-[10px] sm:text-xs text-gray-400 line-through">₹{{ plan.price|floatformat:2 }}</span>
+                        </div>
+                    {% else %}
+                        <p class="text-base sm:text-2xl font-extrabold text-[#1E3A8A]">₹{{ plan.price|floatformat:2 }}</p>
+                    {% endif %}
+                    <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 mb-2 sm:mb-3">for {{ plan.duration_days }} days</p>
+                    {% endwith %}
+
+                    <ul class="space-y-1.5 sm:space-y-2 text-[10px] sm:text-xs text-gray-600 flex-grow text-left border-t border-gray-100 pt-2 sm:pt-3">
+                        <li class="flex items-center gap-1.5">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#10B981] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% if plan.max_medicines == -1 %}
+                                <span class="font-extrabold text-[#1E3A8A]">Unlimited Medicines</span>
+                            {% elif plan.max_medicines == 0 %}
+                                <span class="text-gray-500 italic">Add-on — no inventory limit change</span>
+                            {% else %}
+                                Up to {{ plan.max_medicines }} Medicines
+                            {% endif %}
+                        </li>
+                        <li class="flex items-center gap-1.5">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 {% if plan.allow_custom_link %}text-[#10B981]{% else %}text-gray-300{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span class="{% if not plan.allow_custom_link %}text-gray-400 line-through{% endif %}">Personal Store Link</span>
+                        </li>
+                    </ul>
+
+                    <div class="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                        <a href="{% url 'plan_detail' plan.id %}" class="w-full block py-1.5 sm:py-2 px-2 bg-white border-2 border-gray-200 text-gray-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] font-bold rounded-lg transition text-center text-[10px] sm:text-xs">
+                            View Plan Details
+                        </a>
+                        <a href="{% url 'checkout' plan.id %}?type=inventory" class="w-full block py-2 sm:py-2.5 px-2 {% if plan.price == 0 %}bg-gray-100 text-gray-800 hover:bg-gray-200{% else %}bg-[#1E3A8A] text-white hover:bg-blue-800{% endif %} font-bold rounded-lg transition text-center shadow-sm text-[10px] sm:text-xs">
+                            {% if plan.price == 0 %}Get Started Free{% else %}Buy Base Plan{% endif %}
+                        </a>
+                    </div>
+                </div>
+                {% comment %} <div class="plan-card bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-8 hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden"
                     data-duration-days="{{ plan.duration_days }}"
                     data-unlimited="{% if plan.max_medicines == -1 %}true{% else %}false{% endif %}"
                     data-allow_custom_link="{% if plan.allow_custom_link %}true{% else %}false{% endif %}"
@@ -125,7 +184,7 @@
                     <a href="{% url 'checkout' plan.id %}?type=inventory" class="mt-2 sm:mt-3 w-full block py-2 sm:py-3 px-2 sm:px-4 {% if plan.price == 0 %}bg-gray-100 text-gray-800 hover:bg-gray-200{% else %}bg-[#1E3A8A] text-white hover:bg-blue-800{% endif %} font-bold rounded-lg sm:rounded-xl transition text-center shadow-sm text-[11px] sm:text-sm">
                         {% if plan.price == 0 %}Get Started Free{% else %}Buy Base Plan{% endif %}
                     </a>
-                </div>
+                </div> {% endcomment %}
                 {% empty %}
                     <p class="col-span-full text-gray-500">No inventory plans available right now.</p>
                 {% endfor %}
